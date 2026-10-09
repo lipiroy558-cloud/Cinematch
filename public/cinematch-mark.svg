@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">CineMatch mark</title>
+  <desc id="desc">A coral cinema frame containing a clean white C</desc>
+  <rect width="128" height="128" rx="32" fill="#E91E4D"/>
+  <path d="M80 37.5A34 34 0 1 0 80 90" fill="none" stroke="#FFF9F6" stroke-width="13" stroke-linecap="round"/>
+  <path d="M78 32h13M78 96h13" stroke="#FFF9F6" stroke-width="7" stroke-linecap="round" opacity=".95"/>
+  <circle cx="31" cy="25" r="4" fill="#FFF9F6" opacity=".7"/><circle cx="47" cy="25" r="4" fill="#FFF9F6" opacity=".7"/>
+  <circle cx="31" cy="103" r="4" fill="#FFF9F6" opacity=".7"/><circle cx="47" cy="103" r="4" fill="#FFF9F6" opacity=".7"/>
+</svg>

@@ -1,0 +1,21 @@
+.movie-card { transition: transform .25s ease, box-shadow .25s ease; }
+.movie-card:hover { transform: translateY(-5px); box-shadow: 0 18px 38px rgba(0,0,0,.34); }
+.movie-card .movie-card-actions { opacity: 0; transform: translateY(5px); transition: opacity .2s ease, transform .2s ease; }
+.movie-card:hover .movie-card-actions, .movie-card:focus-within .movie-card-actions { opacity: 1; transform: translateY(0); }
+.hero-backdrop { animation: hero-zoom 14s ease-out both; }
+@keyframes hero-zoom { from { transform: scale(1.02); } to { transform: scale(1.08); } }
+@media (max-width: 640px) { .movie-card .movie-card-actions { opacity: 1; transform: none; } }
+.cinema-hero { isolation: isolate; }
+.cinema-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 78% 35%, rgba(104, 55, 167, .22), transparent 27rem); mix-blend-mode: screen; z-index: 1; }
+.cinema-hero > .relative { z-index: 2; }
+/* Constrain flex children so horizontal rails scroll inside the page,
+   rather than forcing the entire mobile layout wider than its viewport. */
+.page-shell { width: 100%; min-width: 0; max-width: 1440px; }
+main > * { min-width: 0; }
+.page-shell > .mt-11 { order: 3; }
+.page-shell > .mt-11:last-child { padding: clamp(16px, 3vw, 32px); border: 1px solid #ffffff12; border-radius: 20px; background: #17141b; }
+.cinema-hero h1 { font-size: clamp(2.75rem, 5.5vw, 4.75rem); line-height: 1.04; font-weight: 800; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #e11d48; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
