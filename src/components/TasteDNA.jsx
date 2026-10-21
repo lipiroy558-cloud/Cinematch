@@ -31,8 +31,13 @@ export default function TasteDNA() {
       if (!isMounted) return
       const counts = {}
       movies.forEach((m) => {
-        (m.genres || []).forEach((g) => {
-          counts[g] = (counts[g] || 0) + 1
+        // Liked movies carry 2x affinity weight, watchlist movies carry 1x, scaled by rating
+        const baseWeight = likedIds.includes(m.id) ? 2.0 : 1.0
+        const ratingMultiplier = m.rating ? Math.min(Math.max(m.rating / 7.5, 0.8), 1.3) : 1.0
+        const itemWeight = baseWeight * ratingMultiplier
+
+        ;(m.genres || []).forEach((g) => {
+          counts[g] = (counts[g] || 0) + itemWeight
         })
       })
 
@@ -53,7 +58,7 @@ export default function TasteDNA() {
           id: genre.toLowerCase().replace(/\s+/g, '-'),
           label: genre,
           pct,
-          count,
+          count: Math.round(count * 10) / 10,
           ...theme,
         }
       })
@@ -63,7 +68,7 @@ export default function TasteDNA() {
     })
 
     return () => { isMounted = false }
-  }, [signalIds])
+  }, [signalIds, likedIds])
 
   const affinity = calibratedGenres || defaultGenreAffinity
   const isPersonalized = Boolean(calibratedGenres && signalIds.length > 0)

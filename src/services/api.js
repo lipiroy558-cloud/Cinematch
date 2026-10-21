@@ -61,6 +61,18 @@ export function fetchTopRatedMovies() {
   return request("/movies/top-rated");
 }
 
+export function fetchPersonalizedRecommendations(options = {}) {
+  const params = new URLSearchParams()
+  if (options.liked && options.liked.length > 0) {
+    params.set('liked', options.liked.join(','))
+  }
+  if (options.watchlist && options.watchlist.length > 0) {
+    params.set('watchlist', options.watchlist.join(','))
+  }
+  const query = params.toString() ? `?${params.toString()}` : ''
+  return request(`/movies/recommendations${query}`)
+}
+
 export const searchMoviesPage = (query, page = 1, year = 'all') => moviesPage(`/movies/search?q=${encodeURIComponent(query)}&page=${page}${year !== 'all' ? `&year=${encodeURIComponent(year)}` : ''}`)
 export const searchMovies = async (query, page = 1) => (await searchMoviesPage(query, page)).movies
 export const fetchMoviesByGenrePage = (genre, page = 1, year = 'all') => moviesPage(`/movies/genre/${encodeURIComponent(genre)}?page=${page}${year !== 'all' ? `&year=${encodeURIComponent(year)}` : ''}`)

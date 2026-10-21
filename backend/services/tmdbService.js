@@ -138,3 +138,26 @@ export async function findExactMovie(title, year) {
   })
   return exact ? normalizeMovie(exact) : null
 }
+
+export async function getRecommendationsForMovie(tmdbId) {
+  try {
+    const result = await tmdbRequest(`/movie/${tmdbId}/recommendations`)
+    const genres = await getGenreMap()
+    return await Promise.all((result.results || []).map((m) => normalizeMovie(m, genres)))
+  } catch (err) {
+    console.warn(`TMDB recommendations fetch failed for movie ${tmdbId}: ${err.message}`)
+    return []
+  }
+}
+
+export async function getSimilarForMovie(tmdbId) {
+  try {
+    const result = await tmdbRequest(`/movie/${tmdbId}/similar`)
+    const genres = await getGenreMap()
+    return await Promise.all((result.results || []).map((m) => normalizeMovie(m, genres)))
+  } catch (err) {
+    console.warn(`TMDB similar fetch failed for movie ${tmdbId}: ${err.message}`)
+    return []
+  }
+}
+

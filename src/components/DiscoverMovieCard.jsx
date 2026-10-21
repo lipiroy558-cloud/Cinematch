@@ -92,6 +92,14 @@ export default function DiscoverMovieCard({ movie, onSelect }) {
       <p className="font-body-sm text-[11px] text-on-surface-variant truncate mt-1.5">
         {(movie.genres || []).join(' • ')}
       </p>
+      {movie.reason && (
+        <p className="font-label-caps text-[10px] text-secondary truncate mt-0.5 flex items-center gap-1 font-medium">
+          <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+            auto_awesome
+          </span>
+          <span className="truncate">{movie.reason}</span>
+        </p>
+      )}
     </div>
   )
 }
