@@ -1,163 +1,369 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { GENRES } from '../data/movies'
-import { fetchMovies, fetchMoviesByGenrePage, searchMovies, searchMoviesPage } from '../services/api'
+import { fetchDiscoverMovies } from '../services/api'
 import DiscoverMovieCard from './DiscoverMovieCard'
 
 const SORT_OPTIONS = [
+  { id: 'popularity.desc', label: 'Most Popular' },
   { id: 'rating-desc', label: 'Top Rated' },
-  { id: 'year-desc', label: 'Newest' },
+  { id: 'year-desc', label: 'Newest First' },
   { id: 'title-asc', label: 'Title A–Z' },
 ]
 
 const RATING_OPTIONS = [
   { id: 0, label: 'Any Rating' },
-  { id: 7, label: '7.0+' },
-  { id: 8, label: '8.0+' },
-  { id: 9, label: '9.0+' },
+  { id: 7, label: '7.0+ Rating' },
+  { id: 8, label: '8.0+ Rating' },
+  { id: 9, label: '9.0+ Rating' },
 ]
 
-// Discover screen: title search + genre filter + minimum-rating filter +
-// sorting, over the full mock catalog. `initialGenre` lets Home's
-// "Explore Genres" grid deep-link into a pre-filtered view.
+// Generate release year options from current year down to 1970
+const currentYear = new Date().getFullYear()
+const YEAR_OPTIONS = Array.from({ length: currentYear - 1969 }, (_, i) => currentYear - i)
+
 export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [genre, setGenre] = useState(initialGenre)
   const [minRating, setMinRating] = useState(0)
-  const [sort, setSort] = useState('rating-desc')
+  const [sort, setSort] = useState('popularity.desc')
   const [year, setYear] = useState('all')
+
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState({ page: 1, totalPages: 1 })
-  const [loadingMore, setLoadingMore] = useState(false)
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalResults: 0 })
+
+  // Synchronize initialGenre prop if it changes (e.g. deep-link from Home)
   useEffect(() => {
-    setLoading(true); setError(null); setPage(1)
-    const load = query.trim() ? searchMoviesPage(query.trim(), 1, year) : genre !== 'All' ? fetchMoviesByGenrePage(genre, 1, year) : fetchMovies(1, year)
-    load.then((result) => { const payload = Array.isArray(result) ? { movies: result } : result; setMovies(payload.movies || result); setPagination(payload.pagination || { page: 1, totalPages: 1 }) }).catch((e) => setError(e.message)).finally(() => setLoading(false))
-  }, [query, genre, year])
-  const loadMore = () => {
-    if (loadingMore) return
+    if (initialGenre && initialGenre !== genre) {
+      setGenre(initialGenre)
+    }
+  }, [initialGenre])
+
+  // Debounce search input to avoid spamming the backend
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query.trim())
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  // Check if any non-default filters are active
+  const hasActiveFilters = useMemo(() => {
+    return Boolean(
+      debouncedQuery ||
+      genre !== 'All' ||
+      minRating > 0 ||
+      year !== 'all' ||
+      sort !== 'popularity.desc'
+    )
+  }, [debouncedQuery, genre, minRating, year, sort])
+
+  // Reset all filters to baseline
+  const resetFilters = useCallback(() => {
+    setQuery('')
+    setDebouncedQuery('')
+    setGenre('All')
+    setMinRating(0)
+    setYear('all')
+    setSort('popularity.desc')
+  }, [])
+
+  // Primary data loader (page 1)
+  useEffect(() => {
+    let isCancelled = false
+    setLoading(true)
+    setError(null)
+    setPage(1)
+
+    fetchDiscoverMovies({
+      page: 1,
+      query: debouncedQuery,
+      genre,
+      minRating,
+      year,
+      sort,
+    })
+      .then((result) => {
+        if (isCancelled) return
+        const list = Array.isArray(result) ? result : result.movies || []
+        setMovies(list)
+        setPagination(
+          result.pagination || { page: 1, totalPages: 1, totalResults: list.length }
+        )
+      })
+      .catch((err) => {
+        if (!isCancelled) setError(err.message)
+      })
+      .finally(() => {
+        if (!isCancelled) setLoading(false)
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [debouncedQuery, genre, minRating, year, sort])
+
+  // Pagination loader (page 2+)
+  const loadMore = async () => {
+    if (loadingMore || page >= pagination.totalPages) return
     const nextPage = page + 1
     setLoadingMore(true)
-    const load = query.trim() ? searchMoviesPage(query.trim(), nextPage, year) : genre !== 'All' ? fetchMoviesByGenrePage(genre, nextPage, year) : fetchMovies(nextPage, year)
-    load.then((payload) => { setMovies((current) => [...current, ...(payload.movies || [])]); setPagination(payload.pagination || pagination); setPage(nextPage) }).catch((e) => setError(e.message)).finally(() => setLoadingMore(false))
-  }
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    let list = movies.filter((m) => {
-      const matchesQuery = !q || m.title.toLowerCase().includes(q)
-      const matchesGenre = genre === 'All' || m.genres.includes(genre)
-      const matchesRating = m.rating >= minRating
-       const releaseYear = m.year ?? m.releaseYear ?? (m.releaseDate || m.release_date || '').slice(0, 4)
-       const matchesYear = year === 'all' || String(releaseYear) === String(year)
-      return matchesQuery && matchesGenre && matchesRating && matchesYear
-    })
-
-    switch (sort) {
-      case 'year-desc':
-        list = [...list].sort((a, b) => b.year - a.year)
-        break
-      case 'title-asc':
-        list = [...list].sort((a, b) => a.title.localeCompare(b.title))
-        break
-      case 'rating-desc':
-      default:
-        list = [...list].sort((a, b) => b.rating - a.rating)
+    try {
+      const result = await fetchDiscoverMovies({
+        page: nextPage,
+        query: debouncedQuery,
+        genre,
+        minRating,
+        year,
+        sort,
+      })
+      const newMovies = Array.isArray(result) ? result : result.movies || []
+      setMovies((current) => {
+        const seen = new Set(current.map((m) => m.id))
+        const unique = newMovies.filter((m) => !seen.has(m.id))
+        return [...current, ...unique]
+      })
+      setPagination(
+        result.pagination || { ...pagination, page: nextPage }
+      )
+      setPage(nextPage)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoadingMore(false)
     }
-    return list
-  }, [movies, query, genre, minRating, year, sort])
+  }
 
   return (
     <section className="page-shell px-4 sm:px-8 lg:px-12 pt-7 pb-10">
-      <div className="mb-7"><p className="mb-2 text-[10px] font-bold uppercase tracking-[.24em] text-secondary">The catalogue</p><h1 className="font-headline-xl-mobile sm:font-headline-xl text-white mb-2">Discover</h1><p className="max-w-xl text-sm leading-6 text-on-surface-variant">Find your next favourite film by mood, era, rating, or a title you already have in mind.</p></div>
-      {loading && <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">{Array.from({ length: 10 }, (_, index) => <div key={index} className="skeleton aspect-[2/3] rounded-2xl" />)}</div>}
-      {error && <p className="text-error py-6">Unable to load movies. {error}</p>}
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[.24em] text-secondary">
+            The catalogue
+          </p>
+          <h1 className="font-headline-xl-mobile sm:font-headline-xl text-white">
+            Discover
+          </h1>
+          <p className="max-w-xl text-sm leading-6 text-on-surface-variant mt-1">
+            Explore cinema by mood, era, rating, or a title you already have in mind.
+          </p>
+        </div>
 
-      {/* Title search */}
-      <div className="cinema-panel relative mb-4 p-2">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">
-          search
-        </span>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search movies..."
-          className="w-full h-12 pl-11 pr-4 rounded-lg bg-transparent text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none transition-all"
-        />
-      </div>
-
-      {/* Genre filter pills */}
-      <div className="flex overflow-x-auto gap-2 pb-3 mb-3 no-scrollbar">
-        {['All', ...GENRES].map((g) => (
+        {/* Active filter counter + Reset button */}
+        {hasActiveFilters && (
           <button
-            key={g}
             type="button"
-            onClick={() => setGenre(g)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full font-label-caps text-label-caps transition-all active:scale-95 ${
-              genre === g
-                ? 'bg-primary-container text-on-primary-container'
-                : 'border border-white/10 bg-surface-container-low text-on-surface-variant hover:border-primary-container/50 hover:text-on-surface'
-            }`}
+            onClick={resetFilters}
+            className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-bright text-primary border border-outline-variant/30 hover:border-primary-container/40 font-label-caps text-label-caps tracking-wider transition-all active:scale-95 shadow-sm"
           >
-            {g}
+            <span className="material-symbols-outlined text-[14px]">restart_alt</span>
+            <span>Reset filters</span>
           </button>
-        ))}
+        )}
       </div>
 
-      {/* Rating + Sort */}
-      <div className="cinema-panel grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6 p-2">
-        <select
-          aria-label="Minimum rating"
-          value={minRating}
-          onChange={(e) => setMinRating(Number(e.target.value))}
-          className="h-10 px-3 rounded-lg bg-surface-container-high text-on-surface font-body-sm text-body-sm border border-white/10 focus:outline-none focus:border-primary-container"
-        >
-          {RATING_OPTIONS.map((opt) => (
-            <option key={opt.id} value={opt.id}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <select aria-label="Release year" value={year} onChange={(e) => setYear(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high text-on-surface font-body-sm text-body-sm border border-white/10 focus:outline-none focus:border-primary-container"><option value="all">Any year</option>{Array.from({ length: 10 }, (_, index) => new Date().getFullYear() - index).map((value) => <option key={value} value={value}>{value}</option>)}</select>
-        <select
-          aria-label="Sort by"
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-          className="flex-1 h-10 px-3 rounded-lg bg-surface-container-high text-on-surface font-body-sm text-body-sm border border-white/10 focus:outline-none focus:border-primary-container"
-        >
-          {SORT_OPTIONS.map((opt) => (
-            <option key={opt.id} value={opt.id}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+      {/* Filter Control Bar */}
+      <div className="space-y-3 mb-6">
+        {/* Title search */}
+        <div className="relative">
+          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">
+            search
+          </span>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search titles, directors, keywords..."
+            className="w-full h-11 pl-10 pr-10 rounded-xl bg-surface-container-high text-on-surface placeholder:text-outline border border-outline-variant/30 focus:border-primary-container/60 focus:outline-none font-body-sm text-body-sm transition-all shadow-sm"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface p-1 rounded-full hover:bg-surface-bright transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px] leading-none block">close</span>
+            </button>
+          )}
+        </div>
+
+        {/* Genre filter pills */}
+        <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar">
+          {['All', ...GENRES].map((g) => {
+            const isActive = genre === g
+            return (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setGenre(isActive && g !== 'All' ? 'All' : g)}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-full font-label-caps text-label-caps transition-all active:scale-95 shadow-sm ${
+                  isActive
+                    ? 'bg-primary-container text-on-primary-container font-bold ring-2 ring-primary-container/30'
+                    : 'border border-outline-variant/30 bg-surface-container-high text-on-surface-variant hover:border-primary-container/40 hover:text-on-surface'
+                }`}
+              >
+                {g}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Secondary Filters (Rating, Year, Sort) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-2 rounded-2xl bg-surface-container/60 border border-outline-variant/20 shadow-sm">
+          {/* Rating */}
+          <div className="relative">
+            <select
+              aria-label="Minimum rating"
+              value={minRating}
+              onChange={(e) => setMinRating(Number(e.target.value))}
+              className="w-full h-10 pl-3 pr-8 rounded-xl bg-surface-container-high text-on-surface font-body-sm text-body-sm border border-outline-variant/30 focus:outline-none focus:border-primary-container/60 cursor-pointer appearance-none transition-all"
+            >
+              {RATING_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id} className="bg-surface-container">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-outline">
+              expand_more
+            </span>
+          </div>
+
+          {/* Release Year */}
+          <div className="relative">
+            <select
+              aria-label="Release year"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              className="w-full h-10 pl-3 pr-8 rounded-xl bg-surface-container-high text-on-surface font-body-sm text-body-sm border border-outline-variant/30 focus:outline-none focus:border-primary-container/60 cursor-pointer appearance-none transition-all"
+            >
+              <option value="all" className="bg-surface-container">Any Year</option>
+              {YEAR_OPTIONS.map((val) => (
+                <option key={val} value={val} className="bg-surface-container">
+                  {val}
+                </option>
+              ))}
+            </select>
+            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-outline">
+              expand_more
+            </span>
+          </div>
+
+          {/* Sort By */}
+          <div className="relative">
+            <select
+              aria-label="Sort by"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="w-full h-10 pl-3 pr-8 rounded-xl bg-surface-container-high text-on-surface font-body-sm text-body-sm border border-outline-variant/30 focus:outline-none focus:border-primary-container/60 cursor-pointer appearance-none transition-all"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id} className="bg-surface-container">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-outline">
+              expand_more
+            </span>
+          </div>
+        </div>
       </div>
 
-      {!loading && results.length === 0 ? (
-        <p className="text-on-surface-variant font-body-md text-body-md text-center py-10">
-          No movies match your filters. Try adjusting search, genre, or rating.
-        </p>
-      ) : !loading && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8">
-          {results.map((movie) => (
-            <DiscoverMovieCard key={movie.id} movie={movie} onSelect={onSelectMovie} />
+      {/* Error state */}
+      {error && (
+        <div className="p-4 rounded-xl bg-error-container/20 border border-error/30 text-error mb-6 flex items-center justify-between">
+          <p className="font-body-sm text-body-sm">Unable to load movies: {error}</p>
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="text-xs font-semibold underline ml-4 hover:opacity-80"
+          >
+            Retry defaults
+          </button>
+        </div>
+      )}
+
+      {/* Loading Skeletons */}
+      {loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-7">
+          {Array.from({ length: 15 }, (_, index) => (
+            <div key={index} className="flex flex-col space-y-2">
+              <div className="skeleton aspect-[2/3] rounded-2xl w-full" />
+              <div className="h-4 bg-surface-container-high rounded w-3/4 animate-pulse" />
+              <div className="h-3 bg-surface-container-high rounded w-1/2 animate-pulse" />
+            </div>
           ))}
         </div>
       )}
 
-      {!loading && pagination.page < pagination.totalPages && (
-        <button
-          type="button"
-          disabled={loadingMore}
-          onClick={loadMore}
-          className="mt-6 w-full rounded-xl bg-surface-container-high hover:bg-surface-bright py-3 text-sm font-semibold text-on-surface transition active:scale-[0.99] disabled:opacity-60"
-        >
-          {loadingMore ? 'Loading more movies...' : 'Load more movies'}
-        </button>
+      {/* Empty Result State */}
+      {!loading && movies.length === 0 && (
+        <div className="text-center py-16 px-4 rounded-2xl bg-surface-container/30 border border-outline-variant/20 max-w-lg mx-auto">
+          <span className="material-symbols-outlined text-outline text-[48px] mb-3 block">
+            search_off
+          </span>
+          <h2 className="font-title-sm text-title-sm text-on-surface font-semibold mb-1">
+            No films found
+          </h2>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mb-5">
+            {hasActiveFilters
+              ? 'No movies matched your current combination of search, genre, rating, and year.'
+              : 'The catalogue is currently updating. Please check back shortly.'}
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-label-caps text-label-caps tracking-wider transition-all hover:opacity-90 active:scale-95 shadow-md"
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Movie Grid */}
+      {!loading && movies.length > 0 && (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-7">
+            {movies.map((movie) => (
+              <DiscoverMovieCard key={movie.id} movie={movie} onSelect={onSelectMovie} />
+            ))}
+          </div>
+
+          {/* Load More Pagination */}
+          {pagination.page < pagination.totalPages && (
+            <div className="mt-10 text-center">
+              <button
+                type="button"
+                disabled={loadingMore}
+                onClick={loadMore}
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-surface-container-high hover:bg-surface-bright text-on-surface border border-outline-variant/30 hover:border-primary-container/40 font-title-sm text-body-sm font-semibold transition-all active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingMore && (
+                  <span className="material-symbols-outlined text-[18px] animate-spin">
+                    progress_activity
+                  </span>
+                )}
+                <span>
+                  {loadingMore
+                    ? 'Loading more films...'
+                    : `Load more (${pagination.totalResults - movies.length > 0 ? `${pagination.totalResults - movies.length} more` : 'Next page'})`}
+                </span>
+              </button>
+            </div>
+          )}
+        </>
       )}
     </section>
   )
 }
+

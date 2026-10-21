@@ -33,9 +33,10 @@ export default function DiscoverMovieCard({ movie, onSelect }) {
     <div className="movie-card flex flex-col group cursor-pointer" onClick={() => onSelect(movie)}>
       <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-surface-container-high shadow-lg">
         <img
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           alt={movie.alt || movie.title}
           src={movie.poster || '/movie-fallback.svg'}
+          loading="lazy"
           onError={(event) => { event.currentTarget.src = '/movie-fallback.svg' }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/5 to-transparent opacity-95" />

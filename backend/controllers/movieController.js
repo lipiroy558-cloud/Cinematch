@@ -3,12 +3,13 @@ import User from '../models/User.js'
 import { env } from '../config/env.js'
 import {
   findExactMovie,
-  getGenreMap,
   getPaginatedMovies,
   normalizeMovie,
   tmdbRequest,
   getRecommendationsForMovie,
   getSimilarForMovie,
+  resolveGenreId,
+  GENRE_ALIASES,
 } from '../services/tmdbService.js'
 
 const shapeCached = (movie) => ({ id: movie.movieId, tmdbId: movie.tmdbId, title: movie.title, year: movie.year, releaseDate: movie.releaseDate || '', genres: movie.genres || [], rating: movie.rating || 0, poster: movie.poster || '', backdrop: movie.backdrop || '', description: movie.description || '' })
@@ -64,8 +65,105 @@ export async function getAllMovies(req, res) {
   }
 
   const page = pageNumber(req.query.page)
+  const query = String(req.query.q || req.query.query || '').trim()
+  const genre = String(req.query.genre || '').trim()
+  const minRating = Number(req.query.minRating || req.query.rating || 0)
+  const sort = String(req.query.sort || 'popularity.desc').trim()
   const year = /^\d{4}$/.test(String(req.query.year || '')) ? Number(req.query.year) : undefined
-  sendPage(res, await tmdbOrFallback(() => getPaginatedMovies('/discover/movie', { page, year, primary_release_year: year, sort_by: 'popularity.desc', include_adult: false }), () => fallbackPage(year ? { year } : {}, page)))
+
+  let sortBy = 'popularity.desc'
+  let voteCountGte = minRating > 0 ? 30 : undefined
+  if (sort === 'rating-desc') {
+    sortBy = 'vote_average.desc'
+    voteCountGte = 100
+  } else if (sort === 'year-desc') {
+    sortBy = 'primary_release_date.desc'
+  } else if (sort === 'title-asc') {
+    sortBy = 'original_title.asc'
+  }
+
+  const runFallback = async () => {
+    const mongoQuery = {}
+    if (query) {
+      const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      mongoQuery.title = { $regex: safeQuery, $options: 'i' }
+    }
+    if (year) {
+      mongoQuery.year = year
+    }
+    if (minRating > 0) {
+      mongoQuery.rating = { $gte: minRating }
+    }
+    if (genre && genre.toLowerCase() !== 'all') {
+      const alias = GENRE_ALIASES[genre.toLowerCase()] || genre
+      mongoQuery.genres = {
+        $in: [
+          new RegExp(`^${genre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+          new RegExp(`^${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+        ],
+      }
+    }
+
+    let mongoSort = { popularity: -1, rating: -1 }
+    if (sort === 'rating-desc') mongoSort = { rating: -1, popularity: -1 }
+    else if (sort === 'year-desc') mongoSort = { year: -1, rating: -1 }
+    else if (sort === 'title-asc') mongoSort = { title: 1 }
+
+    return fallbackPage(mongoQuery, page, mongoSort)
+  }
+
+  const result = await tmdbOrFallback(async () => {
+    if (query) {
+      const searchRes = await getPaginatedMovies('/search/movie', {
+        page,
+        query,
+        primary_release_year: year,
+        include_adult: false,
+      })
+
+      let list = searchRes.movies || []
+      if (minRating > 0) {
+        list = list.filter((m) => (m.rating || 0) >= minRating)
+      }
+      if (genre && genre.toLowerCase() !== 'all') {
+        const alias = (GENRE_ALIASES[genre.toLowerCase()] || genre).toLowerCase()
+        list = list.filter((m) =>
+          (m.genres || []).some(
+            (g) => g.toLowerCase() === genre.toLowerCase() || g.toLowerCase() === alias
+          )
+        )
+      }
+      if (sort === 'rating-desc') {
+        list.sort((a, b) => b.rating - a.rating)
+      } else if (sort === 'year-desc') {
+        list.sort((a, b) => b.year - a.year)
+      } else if (sort === 'title-asc') {
+        list.sort((a, b) => a.title.localeCompare(b.title))
+      }
+
+      return {
+        movies: list,
+        page: searchRes.page,
+        totalPages: searchRes.totalPages,
+        totalResults: searchRes.totalResults,
+      }
+    }
+
+    const genreId = await resolveGenreId(genre)
+    const discoverParams = {
+      page,
+      sort_by: sortBy,
+      include_adult: false,
+    }
+    if (year) discoverParams.primary_release_year = year
+    if (genreId) discoverParams.with_genres = genreId
+    if (minRating > 0) discoverParams['vote_average.gte'] = minRating
+    if (voteCountGte) discoverParams['vote_count.gte'] = voteCountGte
+
+    return getPaginatedMovies('/discover/movie', discoverParams)
+  }, runFallback)
+
+  sendPage(res, result)
 }
 
 export async function getTrendingMovies(req, res) {
@@ -91,7 +189,7 @@ export async function getMovieById(req, res) {
     try {
       const matched = await findExactMovie(movie.title, movie.year)
       if (matched) {
-        await Movie.updateOne({ _id: movie._id }, { $set: { tmdbId: matched.tmdbId, releaseDate: matched.releaseDate, genres: matched.genres, rating: matched.rating, poster: matched.poster, backdrop: matched.backdrop, description: matched.description, popularity: matched.popularity } })
+        await Movie.updateOne({ _id: movie._id }, { $set: { tmdbId: matched.tmdbId, releaseDate: matched.releaseDate, genres: matched.genres, rating: matched.rating, poster: matched.backdrop, description: matched.description, popularity: matched.popularity } })
         return res.json({ success: true, data: { ...matched, id: movie.movieId } })
       }
     } catch (error) { console.error(`Legacy movie poster repair failed: ${error.message}`) }
@@ -99,20 +197,11 @@ export async function getMovieById(req, res) {
   res.json({ success: true, data: shapeCached(movie) })
 }
 export async function searchMovies(req, res) {
-  const query = String(req.query.q || '').trim()
-  if (!query) return res.json({ success: true, data: [], pagination: { page: 1, totalPages: 0, totalResults: 0 } })
-  const page = pageNumber(req.query.page)
-  const year = /^\d{4}$/.test(String(req.query.year || '')) ? Number(req.query.year) : undefined
-  const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  sendPage(res, await tmdbOrFallback(() => getPaginatedMovies('/search/movie', { page, query, year, include_adult: false }), () => fallbackPage({ title: { $regex: safeQuery, $options: 'i' }, ...(year ? { year } : {}) }, page)))
+  return getAllMovies(req, res)
 }
 export async function getMoviesByGenre(req, res) {
-  const page = pageNumber(req.query.page)
-  const genreValue = decodeURIComponent(req.params.genre)
-  const safeGenre = genreValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const year = /^\d{4}$/.test(String(req.query.year || '')) ? Number(req.query.year) : undefined
-  const result = await tmdbOrFallback(async () => { const genreMap = await getGenreMap(); const genreId = [...genreMap.entries()].find(([, name]) => name.toLowerCase() === genreValue.toLowerCase())?.[0] || genreValue; return getPaginatedMovies('/discover/movie', { page, with_genres: genreId, primary_release_year: year, sort_by: 'popularity.desc' }) }, () => fallbackPage({ genres: { $regex: `^${safeGenre}$`, $options: 'i' }, ...(year ? { year } : {}) }, page, { popularity: -1, rating: -1 }))
-  sendPage(res, result)
+  req.query.genre = req.params.genre
+  return getAllMovies(req, res)
 }
 export async function getTopRated(req, res) {
   const page = pageNumber(req.query.page)

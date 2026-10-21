@@ -73,9 +73,28 @@ export function fetchPersonalizedRecommendations(options = {}) {
   return request(`/movies/recommendations${query}`)
 }
 
-export const searchMoviesPage = (query, page = 1, year = 'all') => moviesPage(`/movies/search?q=${encodeURIComponent(query)}&page=${page}${year !== 'all' ? `&year=${encodeURIComponent(year)}` : ''}`)
+export function fetchDiscoverMovies({
+  page = 1,
+  query = '',
+  genre = 'All',
+  minRating = 0,
+  year = 'all',
+  sort = 'popularity.desc',
+} = {}) {
+  const params = new URLSearchParams()
+  params.set('page', String(page))
+  if (query && query.trim()) params.set('q', query.trim())
+  if (genre && genre !== 'All') params.set('genre', genre)
+  if (minRating && Number(minRating) > 0) params.set('minRating', String(minRating))
+  if (year && year !== 'all') params.set('year', String(year))
+  if (sort) params.set('sort', sort)
+
+  return moviesPage(`/movies?${params.toString()}`)
+}
+
+export const searchMoviesPage = (query, page = 1, year = 'all') => fetchDiscoverMovies({ page, query, year })
 export const searchMovies = async (query, page = 1) => (await searchMoviesPage(query, page)).movies
-export const fetchMoviesByGenrePage = (genre, page = 1, year = 'all') => moviesPage(`/movies/genre/${encodeURIComponent(genre)}?page=${page}${year !== 'all' ? `&year=${encodeURIComponent(year)}` : ''}`)
+export const fetchMoviesByGenrePage = (genre, page = 1, year = 'all') => fetchDiscoverMovies({ page, genre, year })
 export const fetchLibrary = () => request('/users/me/library')
 export const addToWatchlist = (movieId) => request('/users/me/watchlist', { method: 'POST', body: JSON.stringify({ movieId }) })
 export const removeFromWatchlist = (movieId) => request(`/users/me/watchlist/${encodeURIComponent(movieId)}`, { method: 'DELETE' })

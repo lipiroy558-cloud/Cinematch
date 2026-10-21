@@ -88,12 +88,60 @@ export async function tmdbRequest(path, params = {}) {
   })
 }
 
+const STATIC_GENRE_MAP = new Map([
+  [28, 'Action'],
+  [12, 'Adventure'],
+  [16, 'Animation'],
+  [35, 'Comedy'],
+  [80, 'Crime'],
+  [99, 'Documentary'],
+  [18, 'Drama'],
+  [10751, 'Family'],
+  [14, 'Fantasy'],
+  [36, 'History'],
+  [27, 'Horror'],
+  [10402, 'Music'],
+  [9648, 'Mystery'],
+  [10749, 'Romance'],
+  [878, 'Science Fiction'],
+  [10770, 'TV Movie'],
+  [53, 'Thriller'],
+  [10752, 'War'],
+  [37, 'Western'],
+])
+
+export const GENRE_ALIASES = {
+  'sci-fi': 'Science Fiction',
+  'psych thriller': 'Thriller',
+  'neo-noir': 'Crime',
+  'dystopian': 'Science Fiction',
+  'art house': 'Drama',
+}
+
 export async function getGenreMap() {
   if (genreCache.has(env.tmdbLanguage)) return genreCache.get(env.tmdbLanguage)
-  const result = await tmdbRequest('/genre/movie/list')
-  const map = new Map(result.genres.map((genre) => [genre.id, genre.name]))
-  genreCache.set(env.tmdbLanguage, map)
-  return map
+  try {
+    const result = await tmdbRequest('/genre/movie/list')
+    const map = new Map(result.genres.map((genre) => [genre.id, genre.name]))
+    genreCache.set(env.tmdbLanguage, map)
+    return map
+  } catch (err) {
+    console.warn(`TMDB genre fetch notice: ${err.message}; using standard genre catalog`)
+    return STATIC_GENRE_MAP
+  }
+}
+
+export async function resolveGenreId(genreName) {
+  if (!genreName || String(genreName).toLowerCase() === 'all') return null
+  const cleaned = String(genreName).trim().toLowerCase()
+  const target = (GENRE_ALIASES[cleaned] || cleaned).toLowerCase()
+  const genreMap = await getGenreMap()
+  for (const [id, name] of genreMap.entries()) {
+    if (name.toLowerCase() === target || name.toLowerCase().includes(target)) {
+      return id
+    }
+  }
+  return null
 }
 
 export async function normalizeMovie(item, genresById) {
