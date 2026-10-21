@@ -86,10 +86,44 @@ export default function TasteDNA() {
     setStatusMessage(null)
     try {
       await refreshLibrary()
-      setStatusMessage('Recalibrated!')
+      if (signalIds.length > 0) {
+        const movies = await fetchMoviesByIds(signalIds)
+        const counts = {}
+        movies.forEach((m) => {
+          const baseWeight = likedIds.includes(m.id) ? 2.0 : 1.0
+          const ratingMultiplier = m.rating ? Math.min(Math.max(m.rating / 7.5, 0.8), 1.3) : 1.0
+          const itemWeight = baseWeight * ratingMultiplier
+
+          ;(m.genres || []).forEach((g) => {
+            counts[g] = (counts[g] || 0) + itemWeight
+          })
+        })
+
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5)
+        if (sorted.length > 0) {
+          const totalWeight = sorted.reduce((sum, [, count]) => sum + count, 0) || 1
+          let remainingPct = 100
+          const list = sorted.map(([genre, count], idx) => {
+            const isLast = idx === sorted.length - 1
+            const pct = isLast ? Math.max(remainingPct, 5) : Math.max(Math.round((count / totalWeight) * 100), 5)
+            remainingPct -= pct
+            const theme = PALETTE[idx] || PALETTE[PALETTE.length - 1]
+            return {
+              id: genre.toLowerCase().replace(/\s+/g, '-'),
+              label: genre,
+              pct,
+              count: Math.round(count * 10) / 10,
+              ...theme,
+            }
+          })
+          setCalibratedGenres(list)
+        }
+      }
+      setStatusMessage('Taste refreshed!')
       setTimeout(() => setStatusMessage(null), 3000)
     } catch {
       setStatusMessage('Could not sync')
+      setTimeout(() => setStatusMessage(null), 3000)
     } finally {
       setTimeout(() => setRecalibrating(false), 500)
     }
@@ -151,7 +185,7 @@ export default function TasteDNA() {
           })}
         </div>
 
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
           <span className="font-body-sm text-body-sm text-on-surface-variant">
             {isPersonalized
               ? `Calculated across ${signalIds.length} saved & liked ${signalIds.length === 1 ? 'film' : 'films'}`
@@ -161,13 +195,19 @@ export default function TasteDNA() {
             type="button"
             disabled={recalibrating}
             onClick={handleRecalibrate}
-            className="text-primary font-title-sm text-body-sm flex items-center gap-1 hover:underline disabled:opacity-50"
+            aria-label="Refresh taste profile"
+            className="group inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-bright active:scale-95 text-on-surface hover:text-primary-container border border-outline-variant/30 hover:border-primary-container/40 focus:outline-none focus:ring-2 focus:ring-primary-container/40 transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
           >
-            <span>{recalibrating ? 'Calibrating...' : statusMessage || 'Recalibrate'}</span>
             <span
-              className={`material-symbols-outlined text-[16px] ${recalibrating ? 'animate-spin' : ''}`}
+              className={`material-symbols-outlined text-[15px] text-primary-container transition-transform duration-300 ${
+                recalibrating ? 'animate-spin' : 'group-hover:rotate-12'
+              }`}
+              style={!recalibrating ? { fontVariationSettings: "'FILL' 1" } : undefined}
             >
-              tune
+              {recalibrating ? 'refresh' : 'auto_awesome'}
+            </span>
+            <span className="font-label-caps text-label-caps tracking-wider font-semibold">
+              {recalibrating ? 'Refreshing...' : statusMessage || 'Refresh taste'}
             </span>
           </button>
         </div>
