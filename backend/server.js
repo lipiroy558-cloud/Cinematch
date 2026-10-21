@@ -14,16 +14,32 @@ import { notFound, errorHandler } from './middleware/errorHandler.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 
-app.use(cors({ origin: env.frontendOrigin }))
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true)
+      if (
+        origin === env.frontendOrigin ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1')
+      ) {
+        return callback(null, true)
+      }
+      return callback(null, true)
+    },
+    credentials: true,
+  })
+)
 app.use(express.json())
 
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: 'ok', message: 'CineMatch backend is running' })
 })
 
-app.use('/api/movies', movieRoutes)
-app.use('/api/users', userRoutes)
-app.use('/api/auth', authRoutes)
+app.use(['/api/movies', '/movies'], movieRoutes)
+app.use(['/api/users', '/users'], userRoutes)
+app.use(['/api/auth', '/auth'], authRoutes)
 
 // Serve frontend build in production if dist/ exists
 const clientDist = path.resolve(__dirname, '../dist')
