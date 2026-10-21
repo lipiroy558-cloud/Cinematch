@@ -23,15 +23,22 @@ import './App.css'
 function AppContent() {
   const [view, setView] = useState('home')
   const [discoverGenre, setDiscoverGenre] = useState('All')
+  const [discoverIndustry, setDiscoverIndustry] = useState('all')
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [profileMovies, setProfileMovies] = useState([])
   const { watchlistIds, likedIds, authPrompt, dismissAuthPrompt } = useLibrary()
   useEffect(() => { fetchMovies().then((result) => setProfileMovies(result.movies.slice(0, 6))).catch(() => {}) }, [])
 
-  // "Explore Genres" (Home) and genre chips both funnel into Discover
-  // pre-filtered by the chosen genre.
+  // Deep-link helpers into Discover with pre-filtered genre or cinema industry
   const goToDiscoverWithGenre = (genre) => {
     setDiscoverGenre(genre)
+    setDiscoverIndustry('all')
+    setView('discover')
+  }
+
+  const goToDiscoverWithIndustry = (industry) => {
+    setDiscoverIndustry(industry)
+    setDiscoverGenre('All')
     setView('discover')
   }
 
@@ -44,12 +51,17 @@ function AppContent() {
           <HomeView
             onNavigate={setView}
             onSelectGenre={goToDiscoverWithGenre}
+            onSelectIndustry={goToDiscoverWithIndustry}
             onSelectMovie={setSelectedMovie}
           />
         )}
 
         {view === 'discover' && (
-          <DiscoverView initialGenre={discoverGenre} onSelectMovie={setSelectedMovie} />
+          <DiscoverView
+            initialGenre={discoverGenre}
+            initialIndustry={discoverIndustry}
+            onSelectMovie={setSelectedMovie}
+          />
         )}
 
         {view === 'for-you' && <ForYouView onSelectMovie={setSelectedMovie} />}

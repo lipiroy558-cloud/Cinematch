@@ -77,6 +77,7 @@ export function fetchDiscoverMovies({
   page = 1,
   query = '',
   genre = 'All',
+  industry = 'all',
   minRating = 0,
   year = 'all',
   sort = 'popularity.desc',
@@ -85,6 +86,7 @@ export function fetchDiscoverMovies({
   params.set('page', String(page))
   if (query && query.trim()) params.set('q', query.trim())
   if (genre && genre !== 'All') params.set('genre', genre)
+  if (industry && industry !== 'all') params.set('industry', industry)
   if (minRating && Number(minRating) > 0) params.set('minRating', String(minRating))
   if (year && year !== 'all') params.set('year', String(year))
   if (sort) params.set('sort', sort)

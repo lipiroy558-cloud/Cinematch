@@ -21,10 +21,21 @@ const RATING_OPTIONS = [
 const currentYear = new Date().getFullYear()
 const YEAR_OPTIONS = Array.from({ length: currentYear - 1969 }, (_, i) => currentYear - i)
 
-export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
+export const INDUSTRIES = [
+  { id: 'all', label: 'All World', flag: '🌍' },
+  { id: 'hollywood', label: 'Hollywood', flag: '🎬' },
+  { id: 'bollywood', label: 'Bollywood', flag: '🇮🇳' },
+  { id: 'french', label: 'French Cinema', flag: '🇫🇷' },
+  { id: 'korean', label: 'Korean Cinema', flag: '🇰🇷' },
+  { id: 'japanese', label: 'Japanese & Anime', flag: '🇯🇵' },
+  { id: 'spanish', label: 'Spanish Cinema', flag: '🇪🇸' },
+]
+
+export default function DiscoverView({ initialGenre = 'All', initialIndustry = 'all', onSelectMovie }) {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [genre, setGenre] = useState(initialGenre)
+  const [industry, setIndustry] = useState(initialIndustry)
   const [minRating, setMinRating] = useState(0)
   const [sort, setSort] = useState('popularity.desc')
   const [year, setYear] = useState('all')
@@ -36,12 +47,18 @@ export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalResults: 0 })
 
-  // Synchronize initialGenre prop if it changes (e.g. deep-link from Home)
+  // Synchronize initial props if they change
   useEffect(() => {
     if (initialGenre && initialGenre !== genre) {
       setGenre(initialGenre)
     }
   }, [initialGenre])
+
+  useEffect(() => {
+    if (initialIndustry && initialIndustry !== industry) {
+      setIndustry(initialIndustry)
+    }
+  }, [initialIndustry])
 
   // Debounce search input to avoid spamming the backend
   useEffect(() => {
@@ -56,17 +73,19 @@ export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
     return Boolean(
       debouncedQuery ||
       genre !== 'All' ||
+      industry !== 'all' ||
       minRating > 0 ||
       year !== 'all' ||
       sort !== 'popularity.desc'
     )
-  }, [debouncedQuery, genre, minRating, year, sort])
+  }, [debouncedQuery, genre, industry, minRating, year, sort])
 
   // Reset all filters to baseline
   const resetFilters = useCallback(() => {
     setQuery('')
     setDebouncedQuery('')
     setGenre('All')
+    setIndustry('all')
     setMinRating(0)
     setYear('all')
     setSort('popularity.desc')
@@ -83,6 +102,7 @@ export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
       page: 1,
       query: debouncedQuery,
       genre,
+      industry,
       minRating,
       year,
       sort,
@@ -105,7 +125,7 @@ export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
     return () => {
       isCancelled = true
     }
-  }, [debouncedQuery, genre, minRating, year, sort])
+  }, [debouncedQuery, genre, industry, minRating, year, sort])
 
   // Pagination loader (page 2+)
   const loadMore = async () => {
@@ -118,6 +138,7 @@ export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
         page: nextPage,
         query: debouncedQuery,
         genre,
+        industry,
         minRating,
         year,
         sort,
@@ -192,6 +213,32 @@ export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
               <span className="material-symbols-outlined text-[16px] leading-none block">close</span>
             </button>
           )}
+        </div>
+
+        {/* World Cinema / Industry filter pills */}
+        <div className="flex overflow-x-auto gap-2 pb-1 no-scrollbar items-center">
+          <span className="text-[10px] font-bold uppercase tracking-[.22em] text-secondary flex-shrink-0 mr-1 flex items-center gap-1 select-none">
+            <span className="material-symbols-outlined text-[13px]">public</span>
+            Cinema:
+          </span>
+          {INDUSTRIES.map((ind) => {
+            const isActive = industry === ind.id
+            return (
+              <button
+                key={ind.id}
+                type="button"
+                onClick={() => setIndustry(isActive && ind.id !== 'all' ? 'all' : ind.id)}
+                className={`flex-shrink-0 px-3 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1.5 transition-all active:scale-95 shadow-sm ${
+                  isActive
+                    ? 'bg-secondary text-on-secondary-fixed font-bold shadow-md ring-2 ring-secondary/30'
+                    : 'border border-outline-variant/30 bg-surface-container-high text-on-surface-variant hover:border-secondary/40 hover:text-on-surface'
+                }`}
+              >
+                <span>{ind.flag}</span>
+                <span>{ind.label}</span>
+              </button>
+            )
+          })}
         </div>
 
         {/* Genre filter pills */}

@@ -24,6 +24,15 @@ async function tmdbOrFallback(fetchTmdb, fallback) {
 }
 function sendPage(res, result) { res.json({ success: true, data: result.movies, pagination: { page: result.page, totalPages: result.totalPages, totalResults: result.totalResults } }) }
 
+const INDUSTRY_MAP = {
+  bollywood: { with_original_language: 'hi|te|ta|ml|bn', with_origin_country: 'IN' },
+  hollywood: { with_original_language: 'en', with_origin_country: 'US' },
+  french: { with_original_language: 'fr' },
+  korean: { with_original_language: 'ko' },
+  japanese: { with_original_language: 'ja' },
+  spanish: { with_original_language: 'es' },
+}
+
 export async function getAllMovies(req, res) {
   if (req.query.ids) {
     const ids = String(req.query.ids).split(',').map((id) => id.trim()).filter(Boolean)
@@ -67,6 +76,7 @@ export async function getAllMovies(req, res) {
   const page = pageNumber(req.query.page)
   const query = String(req.query.q || req.query.query || '').trim()
   const genre = String(req.query.genre || '').trim()
+  const industry = String(req.query.industry || 'all').trim().toLowerCase()
   const minRating = Number(req.query.minRating || req.query.rating || 0)
   const sort = String(req.query.sort || 'popularity.desc').trim()
   const year = /^\d{4}$/.test(String(req.query.year || '')) ? Number(req.query.year) : undefined
@@ -150,10 +160,12 @@ export async function getAllMovies(req, res) {
     }
 
     const genreId = await resolveGenreId(genre)
+    const industryParams = INDUSTRY_MAP[industry] || {}
     const discoverParams = {
       page,
       sort_by: sortBy,
       include_adult: false,
+      ...industryParams,
     }
     if (year) discoverParams.primary_release_year = year
     if (genreId) discoverParams.with_genres = genreId

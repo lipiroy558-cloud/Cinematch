@@ -8,24 +8,33 @@ import { useLibrary } from '../context/LibraryContext'
 // Home screen: welcome + "Discover Movies" CTA, "Explore Genres" grid,
 // and a trending rail. Uses the same design tokens/components as the
 // rest of the app (no new colors, fonts, or card styles introduced).
-export default function HomeView({ onNavigate, onSelectGenre, onSelectMovie }) {
+const WORLD_CINEMAS = [
+  { id: 'bollywood', name: 'Bollywood', country: 'India', flag: '🇮🇳' },
+  { id: 'hollywood', name: 'Hollywood', country: 'USA & UK', flag: '🎬' },
+  { id: 'french', name: 'French Cinema', country: 'France', flag: '🇫🇷' },
+  { id: 'korean', name: 'Korean Cinema', country: 'South Korea', flag: '🇰🇷' },
+  { id: 'japanese', name: 'Japanese & Anime', country: 'Japan', flag: '🇯🇵' },
+  { id: 'spanish', name: 'Spanish Cinema', country: 'Spain & LATAM', flag: '🇪🇸' },
+]
+
+export default function HomeView({ onNavigate, onSelectGenre, onSelectIndustry, onSelectMovie }) {
   const [movies, setMovies] = useState([])
-const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [popular, setPopular] = useState([])
   const { likedIds, watchlistIds } = useLibrary()
 
-useEffect(() => {
-  fetchTrendingMovies()
-    .then((result) => setMovies(result.movies))
-    .catch((err) => setError(err.message))
-    .finally(() => setLoading(false))
+  useEffect(() => {
+    fetchTrendingMovies()
+      .then((result) => setMovies(result.movies))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
   }, [])
   useEffect(() => { fetchPopularMovies().then((result) => setPopular(result.movies)).catch(() => {}) }, [])
 
-const trending = [...movies]
-  .sort((a, b) => b.rating - a.rating)
-  .slice(0, 6)
+  const trending = [...movies]
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 6)
   const recommended = useMemo(() => {
     const signals = new Set([...likedIds, ...watchlistIds])
     if (!signals.size) return popular.slice(0, 6)
@@ -48,6 +57,48 @@ const trending = [...movies]
           <p className="max-w-lg text-sm sm:text-base leading-7 text-on-surface-variant mb-8">Discover films based on your taste, mood, and the stories you can&apos;t stop thinking about.</p>
           <div className="flex flex-wrap gap-3"><button type="button" onClick={() => onNavigate('discover')} className="rounded-full bg-primary-container px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#f02a55] hover:-translate-y-0.5 active:scale-95">Discover Movies</button><button type="button" onClick={() => document.getElementById('genre-explorer')?.scrollIntoView({ behavior: 'smooth' })} className="rounded-full border border-white/15 bg-white/[0.06] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/[0.12] hover:-translate-y-0.5">Explore Genres</button></div>
           {trending[0] && <div className="mt-10 flex items-center gap-3 text-xs text-on-surface-variant"><span className="h-px w-8 bg-primary-container" /><span>Featured now</span><strong className="text-white">{trending[0].title}</strong><span>★ {trending[0].rating.toFixed(1)}</span></div>}
+        </div>
+      </div>
+
+      {/* World Cinema Industries */}
+      <div className="order-2 mb-10">
+        <div className="section-heading">
+          <div>
+            <p className="mb-1 uppercase tracking-[.2em] text-secondary">Global stories</p>
+            <h2>World cinema &amp; industries</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate('discover')}
+            className="text-xs font-bold text-secondary flex items-center gap-1 hover:underline"
+          >
+            Explore all <span aria-hidden="true">→</span>
+          </button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {WORLD_CINEMAS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelectIndustry?.(item.id)}
+              className="group relative overflow-hidden rounded-xl border border-white/[0.08] bg-surface-container-low p-3.5 text-left transition hover:-translate-y-1 hover:border-secondary/50 hover:bg-surface-container-high active:scale-95 shadow-sm flex flex-col justify-between h-24"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xl select-none">{item.flag}</span>
+                <span className="material-symbols-outlined text-[14px] text-on-surface-variant/40 group-hover:text-secondary group-hover:translate-x-0.5 transition-all">
+                  arrow_forward
+                </span>
+              </div>
+              <div>
+                <h3 className="font-title-sm text-xs sm:text-sm font-bold text-white group-hover:text-secondary transition-colors truncate">
+                  {item.name}
+                </h3>
+                <p className="text-[10px] text-on-surface-variant/75 truncate">
+                  {item.country}
+                </p>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
