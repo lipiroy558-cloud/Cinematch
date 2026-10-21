@@ -148,6 +148,16 @@ export async function normalizeMovie(item, genresById) {
   const releaseDate = item.release_date || ''
   const genreMap = genresById || await getGenreMap()
   const genreNames = item.genres?.map((genre) => genre.name) || (item.genre_ids || []).map((id) => genreMap.get(Number(id))).filter(Boolean)
+
+  const credits = item.credits || {}
+  const director = credits.crew?.find((c) => c.job === 'Director')?.name || item.director || ''
+  const cast = (credits.cast || item.cast || []).slice(0, 12).map((actor) => ({
+    id: actor.id,
+    name: actor.name || 'Unknown',
+    character: actor.character || '',
+    profile: actor.profile || (actor.profile_path ? imageUrl(actor.profile_path, 'w185') : ''),
+  }))
+
   return {
     id: `tmdb-${item.id}`,
     tmdbId: item.id,
@@ -162,6 +172,8 @@ export async function normalizeMovie(item, genresById) {
     posterPath: item.poster_path || '',
     backdropPath: item.backdrop_path || '',
     popularity: Number(item.popularity || 0),
+    director,
+    cast,
   }
 }
 

@@ -1,5 +1,7 @@
+import mongoose from 'mongoose'
 import Movie from '../models/Movie.js'
 import User from '../models/User.js'
+import staticMovies from '../data/movies.js'
 import { env } from '../config/env.js'
 import {
   findExactMovie,
@@ -12,11 +14,32 @@ import {
   GENRE_ALIASES,
 } from '../services/tmdbService.js'
 
-const shapeCached = (movie) => ({ id: movie.movieId, tmdbId: movie.tmdbId, title: movie.title, year: movie.year, releaseDate: movie.releaseDate || '', genres: movie.genres || [], rating: movie.rating || 0, poster: movie.poster || '', backdrop: movie.backdrop || '', description: movie.description || '' })
+const shapeCached = (movie) => ({
+  id: movie.movieId,
+  tmdbId: movie.tmdbId,
+  title: movie.title,
+  year: movie.year,
+  releaseDate: movie.releaseDate || '',
+  genres: movie.genres || [],
+  rating: movie.rating || 0,
+  poster: movie.poster || '',
+  backdrop: movie.backdrop || '',
+  description: movie.description || '',
+  director: movie.director || '',
+  cast: movie.cast || [],
+})
 const pageNumber = (value) => Math.min(Math.max(Number.parseInt(value, 10) || 1, 1), 500)
 const fallbackPage = async (query, page, sort = { rating: -1 }) => {
-  const totalResults = await Movie.countDocuments(query)
-  return { movies: (await Movie.find(query).sort(sort).skip((page - 1) * 20).limit(20)).map(shapeCached), page, totalPages: Math.max(1, Math.ceil(totalResults / 20)), totalResults }
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const totalResults = await Movie.countDocuments(query)
+      return { movies: (await Movie.find(query).sort(sort).skip((page - 1) * 20).limit(20)).map(shapeCached), page, totalPages: Math.max(1, Math.ceil(totalResults / 20)), totalResults }
+    } catch (e) {
+      console.warn('Fallback Mongo query failed, using staticMovies:', e.message)
+    }
+  }
+  const totalResults = staticMovies.length
+  return { movies: staticMovies.slice((page - 1) * 20, page * 20), page, totalPages: Math.max(1, Math.ceil(totalResults / 20)), totalResults }
 }
 async function tmdbOrFallback(fetchTmdb, fallback) {
   if (!env.tmdbApiKey) return fallback()
@@ -40,7 +63,7 @@ export async function getAllMovies(req, res) {
       return res.json({ success: true, data: [], pagination: { page: 1, totalPages: 1, totalResults: 0 } })
     }
 
-    const cached = await Movie.find({ movieId: { $in: ids } })
+    const cached = mongoose.connection.readyState === 1 ? await Movie.find({ movieId: { $in: ids } }).catch(() => []) : []
     const cachedMap = new Map(cached.map((m) => [m.movieId, shapeCached(m)]))
     const missing = ids.filter((id) => !cachedMap.has(id))
 
@@ -51,15 +74,20 @@ export async function getAllMovies(req, res) {
           if (/^\d+$/.test(rawId)) {
             try {
               const movie = await normalizeMovie(await tmdbRequest(`/movie/${rawId}`))
-              await Movie.updateOne(
-                { movieId: movie.id },
-                { $set: { movieId: movie.id, tmdbId: movie.tmdbId, title: movie.title, year: movie.year, releaseDate: movie.releaseDate, genres: movie.genres, rating: movie.rating, poster: movie.poster, backdrop: movie.backdrop, description: movie.description, popularity: movie.popularity } },
-                { upsert: true }
-              )
+              if (mongoose.connection.readyState === 1) {
+                Movie.updateOne(
+                  { movieId: movie.id },
+                  { $set: { movieId: movie.id, tmdbId: movie.tmdbId, title: movie.title, year: movie.year, releaseDate: movie.releaseDate, genres: movie.genres, rating: movie.rating, poster: movie.poster, backdrop: movie.backdrop, description: movie.description, popularity: movie.popularity } },
+                  { upsert: true }
+                ).catch(() => {})
+              }
               cachedMap.set(id, movie)
             } catch (err) {
               console.error(`Failed to fetch TMDB movie ${id}: ${err.message}`)
             }
+          } else {
+            const staticMatch = staticMovies.find((m) => m.id === id)
+            if (staticMatch) cachedMap.set(id, staticMatch)
           }
         })
       )
@@ -190,23 +218,87 @@ export async function getMovieById(req, res) {
   const rawId = req.params.id.replace(/^tmdb-/, '')
   if (env.tmdbApiKey && /^\d+$/.test(rawId)) {
     try {
-      const movie = await normalizeMovie(await tmdbRequest(`/movie/${rawId}`))
-      await Movie.updateOne({ movieId: movie.id }, { $set: { movieId: movie.id, tmdbId: movie.tmdbId, title: movie.title, year: movie.year, releaseDate: movie.releaseDate, genres: movie.genres, rating: movie.rating, poster: movie.poster, backdrop: movie.backdrop, description: movie.description, popularity: movie.popularity } }, { upsert: true })
-      return res.json({ success: true, data: movie })
-    } catch (error) { console.error(`TMDB detail failed; using cache: ${error.message}`) }
-  }
-  const movie = await Movie.findOne({ movieId: req.params.id })
-  if (!movie) return res.status(404).json({ success: false, message: 'Movie not found' })
-  if (env.tmdbApiKey && !movie.tmdbId) {
-    try {
-      const matched = await findExactMovie(movie.title, movie.year)
-      if (matched) {
-        await Movie.updateOne({ _id: movie._id }, { $set: { tmdbId: matched.tmdbId, releaseDate: matched.releaseDate, genres: matched.genres, rating: matched.rating, poster: matched.backdrop, description: matched.description, popularity: matched.popularity } })
-        return res.json({ success: true, data: { ...matched, id: movie.movieId } })
+      const item = await tmdbRequest(`/movie/${rawId}`, { append_to_response: 'credits' })
+      const movie = await normalizeMovie(item)
+      if (mongoose.connection.readyState === 1) {
+        Movie.updateOne(
+          { movieId: movie.id },
+          {
+            $set: {
+              movieId: movie.id,
+              tmdbId: movie.tmdbId,
+              title: movie.title,
+              year: movie.year,
+              releaseDate: movie.releaseDate,
+              genres: movie.genres,
+              rating: movie.rating,
+              poster: movie.poster,
+              backdrop: movie.backdrop,
+              description: movie.description,
+              popularity: movie.popularity,
+              director: movie.director,
+              cast: movie.cast,
+            },
+          },
+          { upsert: true }
+        ).catch(() => {})
       }
-    } catch (error) { console.error(`Legacy movie poster repair failed: ${error.message}`) }
+      return res.json({ success: true, data: movie })
+    } catch (error) {
+      console.error(`TMDB detail failed; using cache: ${error.message}`)
+    }
   }
-  res.json({ success: true, data: shapeCached(movie) })
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const movie = await Movie.findOne({ movieId: req.params.id })
+      if (movie) {
+        if (env.tmdbApiKey) {
+          try {
+            let tmdbId = movie.tmdbId
+            if (!tmdbId) {
+              const matched = await findExactMovie(movie.title, movie.year)
+              if (matched) tmdbId = matched.tmdbId
+            }
+            if (tmdbId) {
+              const item = await tmdbRequest(`/movie/${tmdbId}`, { append_to_response: 'credits' })
+              const enriched = await normalizeMovie(item)
+              Movie.updateOne(
+                { _id: movie._id },
+                {
+                  $set: {
+                    tmdbId,
+                    releaseDate: enriched.releaseDate,
+                    genres: enriched.genres,
+                    rating: enriched.rating,
+                    poster: enriched.poster || movie.poster,
+                    backdrop: enriched.backdrop || movie.backdrop,
+                    description: enriched.description || movie.description,
+                    popularity: enriched.popularity,
+                    director: enriched.director,
+                    cast: enriched.cast,
+                  },
+                }
+              ).catch(() => {})
+              return res.json({ success: true, data: { ...enriched, id: movie.movieId } })
+            }
+          } catch (error) {
+            console.error(`Legacy movie enrich notice: ${error.message}`)
+          }
+        }
+        return res.json({ success: true, data: shapeCached(movie) })
+      }
+    } catch (err) {
+      console.warn('MongoDB query failed:', err.message)
+    }
+  }
+
+  const staticMatch = staticMovies.find((m) => m.id === req.params.id || `tmdb-${m.id}` === req.params.id || m.title?.toLowerCase() === req.params.id.toLowerCase())
+  if (staticMatch) {
+    return res.json({ success: true, data: staticMatch })
+  }
+
+  res.status(404).json({ success: false, message: 'Movie not found' })
 }
 export async function searchMovies(req, res) {
   return getAllMovies(req, res)
