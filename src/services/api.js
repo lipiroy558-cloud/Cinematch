@@ -3,7 +3,7 @@ import { MOVIES } from '../data/movies.js'
 const BASE_URL = (import.meta.env?.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 
 export async function request(path, options = {}) {
-  const token = localStorage.getItem('cinematch:token')
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('cinematch:token') : null
   const response = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) },
@@ -137,14 +137,18 @@ export async function fetchPersonalizedRecommendations(options = {}) {
   const query = params.toString() ? `?${params.toString()}` : ''
   try {
     const data = await request(`/movies/recommendations${query}`)
-    if (Array.isArray(data) && data.length > 0) return data
+    if (data && Array.isArray(data.recommendations)) return data
+    if (Array.isArray(data) && data.length > 0) return { recommendations: data, topGenres: [] }
   } catch (err) {
     console.warn('fetchPersonalizedRecommendations fallback:', err.message)
   }
-  return MOVIES.slice(0, 10).map((m, idx) => ({
-    ...m,
-    recommendationReason: idx % 2 === 0 ? 'Picked for your taste' : 'A taste match',
-  }))
+  return {
+    recommendations: MOVIES.slice(0, 10).map((m, idx) => ({
+      ...m,
+      recommendationReason: idx % 2 === 0 ? 'Picked for your taste' : 'A taste match',
+    })),
+    topGenres: ['Sci-Fi', 'Drama'],
+  }
 }
 
 export function fetchDiscoverMovies({
