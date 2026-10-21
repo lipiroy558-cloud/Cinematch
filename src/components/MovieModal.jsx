@@ -6,6 +6,7 @@ export default function MovieModal({ movie, onClose }) {
   const { isLiked, isWatchlisted, toggleLike, toggleWatchlist } = useLibrary()
   const [details, setDetails] = useState(movie)
   const [loadingDetails, setLoadingDetails] = useState(false)
+  const [showCast, setShowCast] = useState(false)
 
   useEffect(() => {
     const handleKey = (event) => {
@@ -17,6 +18,7 @@ export default function MovieModal({ movie, onClose }) {
 
   useEffect(() => {
     setDetails(movie)
+    setShowCast(false)
     if (!movie) return
 
     if (movie.director && Array.isArray(movie.cast) && movie.cast.length > 0) {
@@ -47,6 +49,8 @@ export default function MovieModal({ movie, onClose }) {
   const current = details || movie
   const liked = isLiked(current.id || movie.id)
   const watchlisted = isWatchlisted(current.id || movie.id)
+  const castList = current.cast || []
+  const hasCast = castList.length > 0 || loadingDetails
 
   return (
     <div
@@ -54,10 +58,10 @@ export default function MovieModal({ movie, onClose }) {
       onClick={onClose}
     >
       <article
-        className="relative w-full sm:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-[1.5rem] sm:rounded-[1.5rem] bg-[#151820] border border-white/10 shadow-2xl"
+        className="relative w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-[1.5rem] sm:rounded-[1.5rem] bg-[#151820] border border-white/10 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative h-48 sm:h-64 overflow-hidden">
+        <div className="relative h-44 sm:h-56 overflow-hidden">
           <img
             src={current.backdrop || current.poster || '/movie-fallback.svg'}
             onError={(event) => {
@@ -71,145 +75,67 @@ export default function MovieModal({ movie, onClose }) {
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="absolute top-4 right-4 h-10 w-10 rounded-full border border-white/15 bg-black/40 text-white backdrop-blur-md transition hover:bg-primary-container flex items-center justify-center"
+            className="absolute top-4 right-4 h-9 w-9 rounded-full border border-white/15 bg-black/40 text-white backdrop-blur-md transition hover:bg-primary-container flex items-center justify-center"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
 
-        <div className="relative grid gap-6 px-5 pb-6 sm:grid-cols-[10rem_1fr] sm:px-8 sm:pb-8">
+        <div className="relative grid gap-5 px-5 pb-6 sm:grid-cols-[8.5rem_1fr] sm:px-7 sm:pb-7">
           <img
             src={current.poster || '/movie-fallback.svg'}
             onError={(event) => {
               event.currentTarget.src = '/movie-fallback.svg'
             }}
             alt={current.title}
-            className="-mt-20 aspect-[2/3] w-32 rounded-xl object-cover shadow-2xl ring-1 ring-white/10 sm:-mt-28 sm:w-40 shrink-0"
+            className="-mt-16 sm:-mt-24 aspect-[2/3] w-28 sm:w-36 rounded-xl object-cover shadow-2xl ring-1 ring-white/10 shrink-0"
           />
-          <div className="pt-5 sm:pt-3 flex flex-col justify-between">
-            <div>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[.22em] text-secondary">
-                    Movie details
-                  </p>
-                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                    {current.title}
-                  </h2>
-                </div>
-                <span className="rounded-lg bg-secondary/10 px-3 py-2 text-sm font-bold text-secondary flex items-center gap-1">
-                  ★ {(current.rating || 0).toFixed(1)}
-                </span>
+          <div className="pt-2 sm:pt-1">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[.22em] text-secondary">
+                  Movie details
+                </p>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  {current.title}
+                </h2>
               </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
-                <span className="font-medium text-white/90">{current.year || '—'}</span>
-                <span>•</span>
-                {(current.genres || []).map((genre) => (
-                  <span
-                    key={genre}
-                    className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-0.5 text-xs text-white/80"
-                  >
-                    {genre}
-                  </span>
-                ))}
-              </div>
-
-              {current.director && (
-                <div className="mt-3 flex items-center gap-1.5 text-xs">
-                  <span className="text-[10px] font-bold uppercase tracking-[.18em] text-secondary">
-                    Directed by
-                  </span>
-                  <span className="font-semibold text-white">{current.director}</span>
-                </div>
-              )}
-
-              <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
-                {current.description || 'No overview is available for this movie yet.'}
-              </p>
-
-              {/* Cast Section */}
-              <div className="mt-5 pt-4 border-t border-white/[0.08]">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[.22em] text-secondary">
-                    Top Cast
-                  </h3>
-                  {current.cast?.length > 0 && (
-                    <span className="text-[11px] text-on-surface-variant">
-                      {current.cast.length} actors
-                    </span>
-                  )}
-                </div>
-
-                {loadingDetails && (!current.cast || current.cast.length === 0) ? (
-                  <div className="flex gap-3 overflow-hidden py-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className="flex-shrink-0 w-20 flex flex-col items-center animate-pulse"
-                      >
-                        <div className="w-14 h-14 rounded-full bg-white/10 mb-2" />
-                        <div className="h-2.5 w-14 bg-white/10 rounded mb-1.5" />
-                        <div className="h-2 w-10 bg-white/10 rounded" />
-                      </div>
-                    ))}
-                  </div>
-                ) : current.cast && current.cast.length > 0 ? (
-                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/15 scrollbar-track-transparent snap-x snap-mandatory">
-                    {current.cast.map((actor) => (
-                      <div
-                        key={actor.id || actor.name}
-                        className="flex-shrink-0 w-20 text-center flex flex-col items-center group snap-start"
-                      >
-                        <div className="w-14 h-14 rounded-full overflow-hidden border border-white/10 bg-white/5 shadow-md mb-1.5 flex items-center justify-center shrink-0 ring-1 ring-white/5 transition-transform duration-200 group-hover:scale-105 group-hover:border-secondary/40">
-                          {actor.profile ? (
-                            <img
-                              src={actor.profile}
-                              alt={actor.name}
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none'
-                                e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                              }}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : null}
-                          <span
-                            className={`material-symbols-outlined text-[24px] text-white/30 ${
-                              actor.profile ? 'hidden' : ''
-                            }`}
-                          >
-                            person
-                          </span>
-                        </div>
-                        <p
-                          className="text-[11px] font-medium text-white leading-tight truncate w-full group-hover:text-secondary transition-colors"
-                          title={actor.name}
-                        >
-                          {actor.name}
-                        </p>
-                        <p
-                          className="text-[10px] text-on-surface-variant leading-tight truncate w-full mt-0.5"
-                          title={actor.character}
-                        >
-                          {actor.character || '—'}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-on-surface-variant/70 italic py-1">
-                    Cast details unavailable for this title.
-                  </p>
-                )}
-              </div>
+              <span className="rounded-lg bg-secondary/10 px-2.5 py-1 text-xs font-bold text-secondary flex items-center gap-1 shrink-0">
+                ★ {(current.rating || 0).toFixed(1)}
+              </span>
             </div>
 
-            <div className="mt-6 flex gap-3">
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
+              <span className="font-medium text-white/90">{current.year || '—'}</span>
+              <span>•</span>
+              {(current.genres || []).map((genre) => (
+                <span
+                  key={genre}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] text-white/80"
+                >
+                  {genre}
+                </span>
+              ))}
+            </div>
+
+            {current.director && (
+              <p className="mt-2 text-xs text-on-surface-variant flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-[.16em] text-secondary">
+                  Directed by
+                </span>
+                <span className="font-semibold text-white">{current.director}</span>
+              </p>
+            )}
+
+            <p className="mt-3.5 text-xs sm:text-sm leading-relaxed text-on-surface-variant line-clamp-4 sm:line-clamp-5">
+              {current.description || 'No overview is available for this movie yet.'}
+            </p>
+
+            <div className="mt-5 flex gap-3">
               <button
                 type="button"
                 onClick={() => toggleWatchlist(current.id || movie.id)}
-                className="flex-1 rounded-xl bg-primary-container px-4 py-3 text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5"
+                className="flex-1 rounded-xl bg-primary-container px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5 shadow-md"
               >
                 <span className="material-symbols-outlined text-[18px]">
                   {watchlisted ? 'bookmark' : 'bookmark_add'}
@@ -220,15 +146,113 @@ export default function MovieModal({ movie, onClose }) {
                 type="button"
                 aria-label={liked ? 'Unlike' : 'Like'}
                 onClick={() => toggleLike(current.id || movie.id)}
-                className={`h-12 w-12 rounded-xl border transition flex items-center justify-center ${
+                className={`h-11 w-11 rounded-xl border transition flex items-center justify-center shrink-0 ${
                   liked
                     ? 'border-primary-container bg-primary-container text-white'
                     : 'border-white/10 bg-white/[0.05] text-on-surface-variant hover:text-white'
                 }`}
               >
-                <span className="material-symbols-outlined">favorite</span>
+                <span className="material-symbols-outlined text-[20px]">favorite</span>
               </button>
             </div>
+
+            {/* Collapsible Cast Section */}
+            {hasCast && (
+              <div className="mt-4 pt-3 border-t border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setShowCast((prev) => !prev)}
+                  className="flex w-full items-center justify-between py-1 text-xs font-semibold text-on-surface-variant hover:text-white transition-colors group"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-[.2em] text-secondary group-hover:text-primary transition-colors">
+                      Top Cast
+                    </span>
+                    {castList.length > 0 && (
+                      <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/60">
+                        {castList.length}
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] text-white/50 group-hover:text-white transition-colors">
+                    {showCast ? 'Hide' : 'Show'}
+                    <span className="material-symbols-outlined text-[16px] transition-transform duration-200">
+                      {showCast ? 'expand_less' : 'expand_more'}
+                    </span>
+                  </span>
+                </button>
+
+                {showCast && (
+                  <div className="mt-3">
+                    {loadingDetails && castList.length === 0 ? (
+                      <div className="grid grid-cols-2 gap-2 py-1">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 rounded-lg bg-white/[0.02] p-2 border border-white/5 animate-pulse"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
+                            <div className="flex-1 space-y-1">
+                              <div className="h-2.5 w-16 bg-white/10 rounded" />
+                              <div className="h-2 w-12 bg-white/10 rounded" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : castList.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/15">
+                        {castList.map((actor) => (
+                          <div
+                            key={actor.id || actor.name}
+                            className="flex items-center gap-2.5 rounded-lg bg-white/[0.03] p-1.5 border border-white/5 hover:border-white/15 transition-colors"
+                          >
+                            <div className="w-8 h-8 rounded-full overflow-hidden bg-white/5 shrink-0 border border-white/10 flex items-center justify-center">
+                              {actor.profile ? (
+                                <img
+                                  src={actor.profile}
+                                  alt={actor.name}
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none'
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                                  }}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : null}
+                              <span
+                                className={`material-symbols-outlined text-[16px] text-white/30 ${
+                                  actor.profile ? 'hidden' : ''
+                                }`}
+                              >
+                                person
+                              </span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className="text-[11px] font-semibold text-white truncate"
+                                title={actor.name}
+                              >
+                                {actor.name}
+                              </p>
+                              <p
+                                className="text-[10px] text-on-surface-variant truncate"
+                                title={actor.character}
+                              >
+                                {actor.character || '—'}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-on-surface-variant/70 italic py-1">
+                        Cast details unavailable.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </article>
