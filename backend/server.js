@@ -55,15 +55,16 @@ if (fs.existsSync(clientDist)) {
 app.use(notFound)
 app.use(errorHandler)
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(env.port, () => {
     console.log(`CineMatch backend listening on http://localhost:${env.port}`)
   })
-  connectDatabase()
-    .then(seedMovies)
-    .catch((error) => {
-      console.warn(`Database connection notice: ${error.message}`)
-    })
 }
+
+connectDatabase()
+  .then(seedMovies)
+  .catch((error) => {
+    console.warn(`Database connection notice: ${error.message}`)
+  })
 
 export default app

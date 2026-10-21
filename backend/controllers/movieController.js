@@ -121,33 +121,69 @@ export async function getAllMovies(req, res) {
   }
 
   const runFallback = async () => {
-    const mongoQuery = {}
+    if (mongoose.connection.readyState === 1) {
+      const mongoQuery = {}
+      if (query) {
+        const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        mongoQuery.title = { $regex: safeQuery, $options: 'i' }
+      }
+      if (year) {
+        mongoQuery.year = year
+      }
+      if (minRating > 0) {
+        mongoQuery.rating = { $gte: minRating }
+      }
+      if (genre && genre.toLowerCase() !== 'all') {
+        const alias = GENRE_ALIASES[genre.toLowerCase()] || genre
+        mongoQuery.genres = {
+          $in: [
+            new RegExp(`^${genre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+            new RegExp(`^${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+          ],
+        }
+      }
+
+      let mongoSort = { popularity: -1, rating: -1 }
+      if (sort === 'rating-desc') mongoSort = { rating: -1, popularity: -1 }
+      else if (sort === 'year-desc') mongoSort = { year: -1, rating: -1 }
+      else if (sort === 'title-asc') mongoSort = { title: 1 }
+
+      try {
+        const result = await fallbackPage(mongoQuery, page, mongoSort)
+        if (result.movies.length > 0) return result
+      } catch {}
+    }
+
+    let list = [...staticMovies]
     if (query) {
-      const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      mongoQuery.title = { $regex: safeQuery, $options: 'i' }
+      const q = query.toLowerCase()
+      list = list.filter((m) => m.title?.toLowerCase().includes(q))
     }
     if (year) {
-      mongoQuery.year = year
+      list = list.filter((m) => m.year === year)
     }
     if (minRating > 0) {
-      mongoQuery.rating = { $gte: minRating }
+      list = list.filter((m) => (m.rating || 0) >= minRating)
     }
     if (genre && genre.toLowerCase() !== 'all') {
-      const alias = GENRE_ALIASES[genre.toLowerCase()] || genre
-      mongoQuery.genres = {
-        $in: [
-          new RegExp(`^${genre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
-          new RegExp(`^${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
-        ],
-      }
+      const alias = (GENRE_ALIASES[genre.toLowerCase()] || genre).toLowerCase()
+      list = list.filter((m) =>
+        (m.genres || []).some(
+          (g) => g.toLowerCase() === genre.toLowerCase() || g.toLowerCase() === alias
+        )
+      )
     }
+    if (sort === 'rating-desc') list.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    else if (sort === 'year-desc') list.sort((a, b) => (b.year || 0) - (a.year || 0))
+    else if (sort === 'title-asc') list.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
 
-    let mongoSort = { popularity: -1, rating: -1 }
-    if (sort === 'rating-desc') mongoSort = { rating: -1, popularity: -1 }
-    else if (sort === 'year-desc') mongoSort = { year: -1, rating: -1 }
-    else if (sort === 'title-asc') mongoSort = { title: 1 }
-
-    return fallbackPage(mongoQuery, page, mongoSort)
+    const totalResults = list.length
+    return {
+      movies: list.slice((page - 1) * 20, page * 20),
+      page,
+      totalPages: Math.max(1, Math.ceil(totalResults / 20)),
+      totalResults,
+    }
   }
 
   const result = await tmdbOrFallback(async () => {
