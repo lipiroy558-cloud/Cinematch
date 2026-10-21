@@ -1,17 +1,41 @@
 import mongoose from 'mongoose'
 import { env } from './env.js'
 
+let cachedPromise = null
+
 export async function connectDatabase() {
-  if (!env.mongoUri) {
-    console.warn('MONGODB_URI not provided; running in local catalog fallback mode.')
-    return
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection
   }
+  if (!env.mongoUri) {
+    return null
+  }
+  if (cachedPromise) {
+    try {
+      await cachedPromise
+      if (mongoose.connection.readyState === 1) return mongoose.connection
+    } catch {
+      cachedPromise = null
+    }
+  }
+
   mongoose.set('bufferCommands', false)
   mongoose.connection.on('error', (error) => console.error('MongoDB connection error:', error.message))
-  try {
-    await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 5000, tlsAllowInvalidCertificates: true })
-    console.log('CineMatch database connected')
-  } catch (error) {
-    console.warn(`Database connection notice: ${error.message}`)
-  }
+
+  cachedPromise = mongoose
+    .connect(env.mongoUri, {
+      serverSelectionTimeoutMS: 5000,
+      tlsAllowInvalidCertificates: true,
+    })
+    .then((m) => {
+      console.log('CineMatch database connected')
+      return m.connection
+    })
+    .catch((error) => {
+      console.warn(`Database connection notice: ${error.message}`)
+      cachedPromise = null
+      return null
+    })
+
+  return cachedPromise
 }
