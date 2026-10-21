@@ -3,7 +3,7 @@ import MovieCard from './MovieCard'
 // A titled, horizontally snap-scrolling rail of MovieCards.
 // Used for "Recently Watched & Rated"; reusable for future rails
 // (e.g. "Because You Watched...", "Trending Now").
-export default function MovieSection({ icon, title, linkLabel, movies }) {
+export default function MovieSection({ icon, title, linkLabel, movies, onSelectMovie }) {
   return (
     <section className="mb-6">
       <div className="px-margin-mobile flex items-center justify-between mb-3">
@@ -28,9 +28,10 @@ export default function MovieSection({ icon, title, linkLabel, movies }) {
 
       <div className="flex overflow-x-auto gap-3 px-margin-mobile pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
         {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
+          <MovieCard key={movie.id} movie={movie} onSelect={onSelectMovie} />
         ))}
       </div>
     </section>
   )
 }
+

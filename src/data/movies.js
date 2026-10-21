@@ -29,7 +29,7 @@ export const MOVIES = [
     genres: ['Sci-Fi', 'Drama'],
     rating: 8.6,
     poster:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuD3cDJff9tzFDZIMcO8anS0tVuYaUdWEwT2rJk42_l_jtVctgh23dGwQn358DYCV5jACO4i8EfHaUzdglT1f_S8bu5sesMAsfeoFWPn-DkHh6t9_RxrBSAXG9XK8ltd51CXh7QVb7PmGxoXgbtmYW3eUqTiToyFTveqFgRinir678Np7D21hC0F88tvHs2F57KnBM7C0uloN8dPBfg5dD1qYR1pddWUpUdLBnjNxDR-n-wsVKr0JmxH',
+      'https://image.tmdb.org/t/p/w500/pEzNVQfdzYDzVK0XqxERIw2x2se.jpg',
     alt: 'Dark atmospheric movie poster of a giant mysterious extraterrestrial pebble spacecraft hovering quietly above misty rolling mountain clouds.',
     description:
       'A linguist is recruited by the military to communicate with alien visitors after twelve mysterious spacecraft appear around the world.',
@@ -46,7 +46,7 @@ export const MOVIES = [
     genres: ['Sci-Fi', 'Psych Thriller'],
     rating: 7.7,
     poster:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCNWGcfDcda4cEsD6S4eXGn86qGI3sMQNOSOBJenkoaOYYdsq9OkW6oc6Cx2BzsIUAr-r1cSjIg2Q4o9iOVxtJ1OmGl0Hw9DEvkXAHv9ZbF8M38V3-DyoJztIVa8_x8iDHPxVhyXntwKJs25ow3Aw8kX_Jczkq-F2GUurl4wHQOZS7Hz9cJ7IaNvvoWSZ_AJ928VA-8rtB54rt5Q8mpUwSHBOzat-wPcVjhvVEDkm3klC535cQodiDh',
+      'https://image.tmdb.org/t/p/w500/dmJW8IAKHKxFNiUnoDR7JfsK7Rp.jpg',
     alt: 'Futuristic neon backlit portrait of a female humanoid android inside an architecturally minimal glass laboratory.',
     description:
       'A young programmer is invited to administer the Turing test on an intelligent, beautiful android — and must decide who to trust.',
@@ -63,7 +63,7 @@ export const MOVIES = [
     genres: ['Sci-Fi', 'Action', 'Thriller'],
     rating: 7.3,
     poster:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuA9fnXqTJmsStSh1Pwfe5Ag0nbKnBRXIZ3EQ4yciR-5599l7EKuN0mOM0CHpTJTuCDunqCF6GeZxTHqlcVxiuNWpprHMNSTiDo1AwBQtuEqrVsYOym4N186LdeQkb4LmLcWLwvR-K1bgFWoVF0p-F5GYvqQNPqbOZ28KHQtAbt4sWLxGfssc7w0WMPebb1IK8nmjx8GRQqeEh6azky3ZxZ9s6PZ9-KSggvAWEua9gEXzg87JS6iQlzS',
+      'https://image.tmdb.org/t/p/w500/rrKH3VhHssGTCfPuaEQkxvEoElv.jpg',
     alt: 'High stakes cinematic still of a secret agent running through an inverted time distortion chamber with shattered glass suspended mid-air.',
     description:
       'Armed with only one word, Tenet, a protagonist fights for the survival of the world through a twilight world of international espionage and time inversion.',
@@ -80,7 +80,7 @@ export const MOVIES = [
     genres: ['Sci-Fi', 'Neo-Noir', 'Dystopian'],
     rating: 8.0,
     poster:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAKhkbuKQ0hV2ukkIPaUmqS54A0b7m-E-Us4D5zRHmtAa3_3gNlty_g8c1-8CKMIssLmKsK2DMfAjV12IIS8hOspOMDupfnQNtAEPMHqa9IBfksGgzWVplMx8pvVcYknXa-OTAhQzB2x4N0ExGnDYUIv2ApWtdhqH6IQA6T14-7CiChk2bvL0Sxz6EYesHdKmEUgfE4Zxi8Gog8RLer7sdtsPfrcMd7fUNBeud1iP7AEziDanBDUftt',
+      'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg',
     alt: 'Atmospheric dystopian landscape in glowing vibrant orange haze with gigantic classical statue remnants and a silhouette of a trenchcoat detective figure.',
     description:
       "A young blade runner unearths a long-buried secret that leads him to track down former blade runner Rick Deckard, missing for thirty years.",
@@ -98,7 +98,7 @@ export const MOVIES = [
     year: 2010,
     genres: ['Sci-Fi', 'Psych Thriller', 'Mystery'],
     rating: 8.8,
-    poster: 'https://picsum.photos/seed/inception-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg',
     alt: 'Movie poster placeholder for Inception',
     description:
       'A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into a target\u2019s subconscious.',
@@ -109,7 +109,7 @@ export const MOVIES = [
     year: 2019,
     genres: ['Drama', 'Thriller', 'Mystery'],
     rating: 8.5,
-    poster: 'https://picsum.photos/seed/parasite-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
     alt: 'Movie poster placeholder for Parasite',
     description:
       'Greed and class discrimination threaten the newly formed symbiotic relationship between a wealthy family and a destitute clan.',
@@ -120,7 +120,7 @@ export const MOVIES = [
     year: 1982,
     genres: ['Sci-Fi', 'Neo-Noir', 'Dystopian'],
     rating: 8.1,
-    poster: 'https://picsum.photos/seed/bladerunner1982-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/63N9uy8nd9j7Eog2axPQ8lbr3Wj.jpg',
     alt: 'Movie poster placeholder for Blade Runner',
     description:
       'A blade runner must pursue and terminate four replicants who stole a ship in space and have returned to Earth to find their creator.',
@@ -131,7 +131,7 @@ export const MOVIES = [
     year: 2006,
     genres: ['Sci-Fi', 'Dystopian', 'Drama'],
     rating: 7.9,
-    poster: 'https://picsum.photos/seed/childrenofmen-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/k9IAS4TehZFcKi4HVByxZNPfqex.jpg',
     alt: 'Movie poster placeholder for Children of Men',
     description:
       'In a chaotic future where humans can no longer procreate, a former activist agrees to help transport a miraculously pregnant woman to safety.',
@@ -142,7 +142,7 @@ export const MOVIES = [
     year: 1999,
     genres: ['Sci-Fi', 'Action'],
     rating: 8.7,
-    poster: 'https://picsum.photos/seed/thematrix-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/dXNAPwY7VrqMAo51EKhhCJfaGb5.jpg',
     alt: 'Movie poster placeholder for The Matrix',
     description:
       'A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.',
@@ -153,7 +153,7 @@ export const MOVIES = [
     year: 2013,
     genres: ['Sci-Fi', 'Drama', 'Romance'],
     rating: 8.0,
-    poster: 'https://picsum.photos/seed/her-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg',
     alt: 'Movie poster placeholder for Her',
     description:
       'A lonely writer develops an unlikely relationship with an operating system designed to meet his every need.',
@@ -164,7 +164,7 @@ export const MOVIES = [
     year: 2013,
     genres: ['Sci-Fi', 'Art House', 'Horror'],
     rating: 6.3,
-    poster: 'https://picsum.photos/seed/undertheskin-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/kX41SU4XFBbeXvVzEb0vbzpkGgO.jpg',
     alt: 'Movie poster placeholder for Under the Skin',
     description:
       'An alien entity in human form roams the streets, luring lonely men into a mysterious, otherworldly void.',
@@ -175,7 +175,7 @@ export const MOVIES = [
     year: 2013,
     genres: ['Psych Thriller', 'Drama', 'Mystery'],
     rating: 8.1,
-    poster: 'https://picsum.photos/seed/prisoners-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/uhviyknTT5cEQXbn6vWIqfM4vGm.jpg',
     alt: 'Movie poster placeholder for Prisoners',
     description:
       'When his daughter and her friend go missing, a desperate father takes matters into his own hands as the police pursue multiple leads.',
@@ -186,7 +186,7 @@ export const MOVIES = [
     year: 1995,
     genres: ['Psych Thriller', 'Neo-Noir', 'Mystery'],
     rating: 8.6,
-    poster: 'https://picsum.photos/seed/se7en-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/191nKfP0ehp3uIvWqgPbFmI4lv9.jpg',
     alt: 'Movie poster placeholder for Se7en',
     description:
       'Two detectives hunt a serial killer who uses the seven deadly sins as his motives in a series of ritualistic murders.',
@@ -197,7 +197,7 @@ export const MOVIES = [
     year: 2014,
     genres: ['Psych Thriller', 'Drama', 'Mystery'],
     rating: 8.1,
-    poster: 'https://picsum.photos/seed/gonegirl-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/ts996lKsxvjkO2yiYG0ht4qAicO.jpg',
     alt: 'Movie poster placeholder for Gone Girl',
     description:
       'With his wife\u2019s disappearance having become the focus of an intense media circus, a man sees the spotlight turned on him.',
@@ -208,7 +208,7 @@ export const MOVIES = [
     year: 2010,
     genres: ['Psych Thriller', 'Mystery', 'Dystopian'],
     rating: 8.2,
-    poster: 'https://picsum.photos/seed/shutterisland-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/nrmXQ0zcZUL8jFLrakWc90IR8z9.jpg',
     alt: 'Movie poster placeholder for Shutter Island',
     description:
       'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.',
@@ -219,7 +219,7 @@ export const MOVIES = [
     year: 1998,
     genres: ['Drama', 'Art House'],
     rating: 8.2,
-    poster: 'https://picsum.photos/seed/trumanshow-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/vuza0WqY239yBXOadKlGwJsZJFE.jpg',
     alt: 'Movie poster placeholder for The Truman Show',
     description:
       'An insurance salesman discovers his whole life is actually a nonstop television show broadcast around the clock to the entire world.',
@@ -230,7 +230,7 @@ export const MOVIES = [
     year: 2004,
     genres: ['Romance', 'Drama', 'Art House'],
     rating: 8.3,
-    poster: 'https://picsum.photos/seed/eternalsunshine-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/5MwkWH9tYHv3mV9OdYTMR5qreIz.jpg',
     alt: 'Movie poster placeholder for Eternal Sunshine of the Spotless Mind',
     description:
       'When their relationship turns sour, a couple undergoes a medical procedure to have each other erased from their memories.',
@@ -241,7 +241,7 @@ export const MOVIES = [
     year: 2001,
     genres: ['Sci-Fi', 'Psych Thriller', 'Art House'],
     rating: 8.0,
-    poster: 'https://picsum.photos/seed/donniedarko-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/j2AtZFsflxiluaNtajMTI0Avm8C.jpg',
     alt: 'Movie poster placeholder for Donnie Darko',
     description:
       'A troubled teenager is plagued by visions of a large rabbit that manipulates him into committing a series of crimes.',
@@ -252,7 +252,7 @@ export const MOVIES = [
     year: 2014,
     genres: ['Sci-Fi', 'Drama'],
     rating: 8.7,
-    poster: 'https://picsum.photos/seed/interstellar-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg',
     alt: 'Movie poster placeholder for Interstellar',
     description:
       'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\u2019s survival.',
@@ -263,7 +263,7 @@ export const MOVIES = [
     year: 2017,
     genres: ['Horror', 'Psych Thriller', 'Mystery'],
     rating: 7.7,
-    poster: 'https://picsum.photos/seed/getout-cinematch/400/600',
+    poster: 'https://image.tmdb.org/t/p/w500/tFXcEccSQMf3lfhfXKSU9iRBpa3.jpg',
     alt: 'Movie poster placeholder for Get Out',
     description:
       'A young Black man visits his white girlfriend\u2019s family estate, where he uncovers a disturbing secret.',

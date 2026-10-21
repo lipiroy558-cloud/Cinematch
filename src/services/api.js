@@ -13,13 +13,24 @@ export async function request(path, options = {}) {
     throw new Error(data.message || 'Request failed')
   }
 
+  if (data.pagination) {
+    return {
+      movies: Array.isArray(data.data) ? data.data : [],
+      pagination: data.pagination,
+    }
+  }
+
   return data.data
 }
 
 const moviesPage = async (path) => {
   const payload = await request(path)
+  if (payload && payload.movies && payload.pagination) {
+    return payload
+  }
   return Array.isArray(payload) ? { movies: payload, pagination: { page: 1, totalPages: 1, totalResults: payload.length } } : payload
 }
+
 
 export function fetchMovies(page = 1, year = 'all') { return moviesPage(`/movies?page=${page}${year !== 'all' ? `&year=${encodeURIComponent(year)}` : ''}`) }
 export function fetchTrendingMovies(page = 1) { return moviesPage(`/movies/trending?page=${page}`) }
@@ -27,6 +38,19 @@ export function fetchPopularMovies(page = 1) { return moviesPage(`/movies/popula
 
 export function fetchMovieById(id) {
   return request(`/movies/${id}`);
+}
+
+export async function fetchMoviesByIds(ids = []) {
+  if (!ids || ids.length === 0) return []
+  try {
+    const result = await request(`/movies?ids=${ids.map(encodeURIComponent).join(',')}`)
+    const list = Array.isArray(result) ? result : result.movies || []
+    if (list.length > 0) return list
+  } catch (err) {
+    console.warn('Batch movie fetch failed, falling back to individual lookups:', err.message)
+  }
+  const settled = await Promise.allSettled(ids.map((id) => fetchMovieById(id)))
+  return settled.filter((s) => s.status === 'fulfilled' && s.value).map((s) => s.value)
 }
 
 export function fetchMoviesByGenre(genre) {

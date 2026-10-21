@@ -1,8 +1,13 @@
 import { profile } from '../data/profile'
+import { useLibrary } from '../context/LibraryContext'
 
 // Avatar + member badge + name/handle + bio + action buttons.
 // Ambient glow blobs are preserved from the Stitch design.
 export default function ProfileHeader() {
+  const { user, isAuthenticated } = useLibrary()
+  const displayName = isAuthenticated && user?.name ? user.name : profile.name
+  const displayHandle = isAuthenticated && user?.email ? `@${user.email.split('@')[0]}` : profile.handle
+
   return (
     <section className="relative px-4 sm:px-8 lg:px-12 pt-8 pb-8 flex flex-col items-center text-center overflow-hidden">
       {/* Atmospheric Ambient Glow */}
@@ -13,7 +18,7 @@ export default function ProfileHeader() {
       <div className="relative mb-3 group cursor-pointer">
         <div className="w-28 h-28 rounded-full overflow-hidden shadow-[0_12px_38px_rgba(0,0,0,0.6)] p-1 bg-gradient-to-br from-primary-container to-secondary">
           <img
-            alt={`${profile.name} Avatar`}
+            alt={`${displayName} Avatar`}
             className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-300"
             src={profile.avatar}
           />
@@ -37,10 +42,10 @@ export default function ProfileHeader() {
 
       {/* Name & Handle */}
       <h1 className="font-headline-lg text-[26px] text-white font-bold tracking-tight mb-0.5">
-        {profile.name}
+        {displayName}
       </h1>
       <span className="font-label-md text-label-md text-primary tracking-wide mb-2.5">
-        {profile.handle}
+        {displayHandle}
       </span>
 
       {/* Bio */}

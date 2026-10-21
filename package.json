@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "server": "node --watch backend/server.js",
+    "server:start": "node backend/server.js"
   },
   "dependencies": {
     "react": "^18.3.1",

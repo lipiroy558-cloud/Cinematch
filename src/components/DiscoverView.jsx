@@ -30,15 +30,18 @@ export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
   const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1 })
+  const [loadingMore, setLoadingMore] = useState(false)
   useEffect(() => {
     setLoading(true); setError(null); setPage(1)
     const load = query.trim() ? searchMoviesPage(query.trim(), 1, year) : genre !== 'All' ? fetchMoviesByGenrePage(genre, 1, year) : fetchMovies(1, year)
     load.then((result) => { const payload = Array.isArray(result) ? { movies: result } : result; setMovies(payload.movies || result); setPagination(payload.pagination || { page: 1, totalPages: 1 }) }).catch((e) => setError(e.message)).finally(() => setLoading(false))
   }, [query, genre, year])
   const loadMore = () => {
+    if (loadingMore) return
     const nextPage = page + 1
+    setLoadingMore(true)
     const load = query.trim() ? searchMoviesPage(query.trim(), nextPage, year) : genre !== 'All' ? fetchMoviesByGenrePage(genre, nextPage, year) : fetchMovies(nextPage, year)
-    load.then((payload) => { setMovies((current) => [...current, ...(payload.movies || [])]); setPagination(payload.pagination || pagination); setPage(nextPage) }).catch((e) => setError(e.message))
+    load.then((payload) => { setMovies((current) => [...current, ...(payload.movies || [])]); setPagination(payload.pagination || pagination); setPage(nextPage) }).catch((e) => setError(e.message)).finally(() => setLoadingMore(false))
   }
 
   const results = useMemo(() => {
@@ -144,7 +147,17 @@ export default function DiscoverView({ initialGenre = 'All', onSelectMovie }) {
           ))}
         </div>
       )}
-      {!loading && pagination.page < pagination.totalPages && <button type="button" onClick={loadMore} className="mt-6 w-full rounded-xl bg-surface-container-high py-3 text-on-surface">Load more movies</button>}
+
+      {!loading && pagination.page < pagination.totalPages && (
+        <button
+          type="button"
+          disabled={loadingMore}
+          onClick={loadMore}
+          className="mt-6 w-full rounded-xl bg-surface-container-high hover:bg-surface-bright py-3 text-sm font-semibold text-on-surface transition active:scale-[0.99] disabled:opacity-60"
+        >
+          {loadingMore ? 'Loading more movies...' : 'Load more movies'}
+        </button>
+      )}
     </section>
   )
 }

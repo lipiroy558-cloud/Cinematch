@@ -1,16 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
-import { fetchMovieById } from '../services/api'
+import { fetchMoviesByIds } from '../services/api'
 import { useLibrary } from '../context/LibraryContext'
 import DiscoverMovieCard from './DiscoverMovieCard'
 
 // Watchlist screen: every movie the user has bookmarked. The bookmark
 // icon on each card doubles as the "remove" action (toggling it off
 // removes the movie from this list, persisted via localStorage).
-export default function WatchlistView({ onSelectMovie }) {
-  const { watchlistIds, libraryLoading } = useLibrary()
+export default function WatchlistView({ onSelectMovie, onNavigate }) {
+  const { watchlistIds, libraryLoading, isAuthenticated } = useLibrary()
   const [moviesCatalog, setMoviesCatalog] = useState([])
   const [error, setError] = useState(null)
-  useEffect(() => { Promise.all(watchlistIds.map((id) => fetchMovieById(id))).then(setMoviesCatalog).catch((e) => setError(e.message)) }, [watchlistIds])
+
+  useEffect(() => {
+    if (!watchlistIds.length) {
+      setMoviesCatalog([])
+      return
+    }
+    fetchMoviesByIds(watchlistIds)
+      .then(setMoviesCatalog)
+      .catch((e) => setError(e.message))
+  }, [watchlistIds])
 
   const movies = useMemo(() => moviesCatalog.filter((m) => watchlistIds.includes(m.id)), [moviesCatalog, watchlistIds])
 
@@ -24,7 +33,20 @@ export default function WatchlistView({ onSelectMovie }) {
       {libraryLoading && <p className="text-on-surface-variant py-6">Loading your watchlist...</p>}
 
       {!libraryLoading && movies.length === 0 ? (
-        <div className="cinema-panel flex flex-col items-center justify-center py-16 px-6 text-center"><span className="material-symbols-outlined text-5xl text-primary-container/70 mb-4">bookmark_add</span><h2 className="text-lg font-bold text-white mb-2">Your watchlist is waiting</h2><p className="max-w-sm text-sm leading-6 text-on-surface-variant">Save films that catch your eye and build a private queue for your next movie night.</p></div>
+        <div className="cinema-panel flex flex-col items-center justify-center py-16 px-6 text-center">
+          <span className="material-symbols-outlined text-5xl text-primary-container/70 mb-4">bookmark_add</span>
+          <h2 className="text-lg font-bold text-white mb-2">Your watchlist is waiting</h2>
+          <p className="max-w-sm text-sm leading-6 text-on-surface-variant">Save films that catch your eye and build a private queue for your next movie night.</p>
+          {!isAuthenticated && onNavigate && (
+            <button
+              type="button"
+              onClick={() => onNavigate('profile')}
+              className="mt-5 rounded-full bg-primary-container px-6 py-2.5 text-xs font-bold text-white transition hover:bg-[#f02a55] active:scale-95"
+            >
+              Sign in to sync your watchlist
+            </button>
+          )}
+        </div>
       ) : !libraryLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8">
           {movies.map((movie) => (

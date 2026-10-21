@@ -25,7 +25,7 @@ function AppContent() {
   const [discoverGenre, setDiscoverGenre] = useState('All')
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [profileMovies, setProfileMovies] = useState([])
-  const { watchlistIds } = useLibrary()
+  const { watchlistIds, likedIds, authPrompt, dismissAuthPrompt } = useLibrary()
   useEffect(() => { fetchMovies().then((result) => setProfileMovies(result.movies.slice(0, 6))).catch(() => {}) }, [])
 
   // "Explore Genres" (Home) and genre chips both funnel into Discover
@@ -54,19 +54,21 @@ function AppContent() {
 
         {view === 'for-you' && <ForYouView onSelectMovie={setSelectedMovie} />}
 
-        {view === 'watchlist' && <WatchlistView onSelectMovie={setSelectedMovie} />}
+        {view === 'watchlist' && <WatchlistView onSelectMovie={setSelectedMovie} onNavigate={setView} />}
 
         {view === 'profile' && (
             <div className="page-shell flex flex-col w-full pb-10">
             <ProfileHeader />
-            <QuickStats watchlistCount={watchlistIds.length} />
+            <QuickStats watchlistCount={watchlistIds.length} likedCount={likedIds.length} />
             <TasteDNA />
             <MovieSection
               icon="history_toggle_off"
               title="Recently Watched & Rated"
               linkLabel="All (88)"
                movies={profileMovies}
+               onSelectMovie={setSelectedMovie}
             />
+
             <AIPreferences />
             <AccountSettings />
             <Footer />
@@ -77,6 +79,41 @@ function AppContent() {
       <BottomNav activeTab={view} onChange={setView} watchlistCount={watchlistIds.length} />
 
       <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />
+
+      {authPrompt && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-24 md:bottom-6 right-4 sm:right-6 z-[70] max-w-sm flex items-center gap-3 p-4 rounded-2xl bg-[#1e2029]/95 text-white border border-white/10 shadow-2xl backdrop-blur-xl animate-float-in"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary-container/20 text-primary-container flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-[20px]">bookmark_add</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-on-surface-variant font-medium leading-snug">{authPrompt}</p>
+            <button
+              type="button"
+              onClick={() => {
+                dismissAuthPrompt()
+                setSelectedMovie(null)
+                setView('profile')
+              }}
+              className="mt-1 text-xs font-bold text-secondary hover:underline flex items-center gap-1"
+            >
+              <span>Sign In / Create Account</span>
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+          </div>
+          <button
+            type="button"
+            aria-label="Dismiss notification"
+            onClick={dismissAuthPrompt}
+            className="p-1 rounded-lg text-on-surface-variant hover:text-white transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </aside>
+      )}
     </>
   )
 }

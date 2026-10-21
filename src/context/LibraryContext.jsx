@@ -11,11 +11,26 @@ export function LibraryProvider({ children }) {
   const [likedIds, setLikedIds] = useState([])
   const [libraryLoading, setLibraryLoading] = useState(Boolean(token))
   const [libraryError, setLibraryError] = useState(null)
+  const [authPrompt, setAuthPrompt] = useState(null)
 
   const clearAuth = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY)
     setToken(null); setUser(null); setWatchlistIds([]); setLikedIds([])
   }, [])
+
+  const triggerAuthPrompt = useCallback((message = 'Please log in to manage your library') => {
+    setAuthPrompt(message)
+  }, [])
+
+  const dismissAuthPrompt = useCallback(() => {
+    setAuthPrompt(null)
+  }, [])
+
+  useEffect(() => {
+    if (!authPrompt) return undefined
+    const timer = setTimeout(() => setAuthPrompt(null), 6000)
+    return () => clearTimeout(timer)
+  }, [authPrompt])
 
   const refreshLibrary = useCallback(async () => {
     if (!token) return
@@ -39,17 +54,45 @@ export function LibraryProvider({ children }) {
   const logout = useCallback(() => clearAuth(), [clearAuth])
 
   const toggleWatchlist = useCallback(async (id) => {
-    if (!token) throw new Error('Please log in to manage your watchlist')
+    if (!token) {
+      triggerAuthPrompt('Sign in to add movies to your watchlist')
+      return false
+    }
     const ids = watchlistIds.includes(id) ? await api.removeFromWatchlist(id) : await api.addToWatchlist(id)
     setWatchlistIds(ids)
-  }, [token, watchlistIds])
+    return true
+  }, [token, watchlistIds, triggerAuthPrompt])
+
   const toggleLike = useCallback(async (id) => {
-    if (!token) throw new Error('Please log in to like movies')
+    if (!token) {
+      triggerAuthPrompt('Sign in to like movies and train your recommendations')
+      return false
+    }
     const ids = likedIds.includes(id) ? await api.unlikeMovie(id) : await api.likeMovie(id)
     setLikedIds(ids)
-  }, [token, likedIds])
+    return true
+  }, [token, likedIds, triggerAuthPrompt])
 
-  const value = useMemo(() => ({ user, token, isAuthenticated: Boolean(token), libraryLoading, libraryError, refreshLibrary, login: (payload) => authenticate(api.login, payload), register: (payload) => authenticate(api.register, payload), logout, watchlistIds, likedIds, toggleWatchlist, toggleLike, isWatchlisted: (id) => watchlistIds.includes(id), isLiked: (id) => likedIds.includes(id) }), [user, token, libraryLoading, libraryError, refreshLibrary, authenticate, logout, watchlistIds, likedIds, toggleWatchlist, toggleLike])
+  const value = useMemo(() => ({
+    user,
+    token,
+    isAuthenticated: Boolean(token),
+    libraryLoading,
+    libraryError,
+    authPrompt,
+    triggerAuthPrompt,
+    dismissAuthPrompt,
+    refreshLibrary,
+    login: (payload) => authenticate(api.login, payload),
+    register: (payload) => authenticate(api.register, payload),
+    logout,
+    watchlistIds,
+    likedIds,
+    toggleWatchlist,
+    toggleLike,
+    isWatchlisted: (id) => watchlistIds.includes(id),
+    isLiked: (id) => likedIds.includes(id)
+  }), [user, token, libraryLoading, libraryError, authPrompt, triggerAuthPrompt, dismissAuthPrompt, refreshLibrary, authenticate, logout, watchlistIds, likedIds, toggleWatchlist, toggleLike])
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>
 }
 
