@@ -127,6 +127,9 @@ export async function getAllMovies(req, res) {
         const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         mongoQuery.title = { $regex: safeQuery, $options: 'i' }
       }
+      if (industry && industry !== 'all') {
+        mongoQuery.industry = industry
+      }
       if (year) {
         mongoQuery.year = year
       }
@@ -155,6 +158,9 @@ export async function getAllMovies(req, res) {
     }
 
     let list = [...staticMovies]
+    if (industry && industry !== 'all') {
+      list = list.filter((m) => (m.industry || '').toLowerCase() === industry)
+    }
     if (query) {
       const q = query.toLowerCase()
       list = list.filter((m) => m.title?.toLowerCase().includes(q))

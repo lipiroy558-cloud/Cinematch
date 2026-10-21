@@ -1,6 +1,6 @@
-import { MOVIES } from '../data/movies'
+import { MOVIES } from '../data/movies.js'
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
+const BASE_URL = (import.meta.env?.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 
 export async function request(path, options = {}) {
   const token = localStorage.getItem('cinematch:token')
@@ -31,10 +31,14 @@ const localFallbackPage = (path) => {
     const url = new URL(`http://dummy${path}`)
     const query = url.searchParams.get('q') || url.searchParams.get('query') || ''
     const genre = url.searchParams.get('genre') || ''
+    const industry = (url.searchParams.get('industry') || 'all').toLowerCase()
     const year = url.searchParams.get('year') || ''
     const minRating = Number(url.searchParams.get('minRating') || url.searchParams.get('rating') || 0)
     const sort = url.searchParams.get('sort') || ''
 
+    if (industry && industry !== 'all') {
+      list = list.filter((m) => (m.industry || '').toLowerCase() === industry)
+    }
     if (query) {
       const q = query.toLowerCase()
       list = list.filter((m) => m.title?.toLowerCase().includes(q))
