@@ -29,7 +29,7 @@ function buildClientFallback(movies, likedIds, watchlistIds) {
       return {
         ...m,
         matchScore,
-        reason: topGenres[0] ? `Based on your interest in ${topGenres[0]}` : 'Recommended for you',
+        reason: 'Picked for your taste',
       }
     })
     .filter((x) => x.matchScore > 0)

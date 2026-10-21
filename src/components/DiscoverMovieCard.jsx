@@ -7,10 +7,27 @@ import { useLibrary } from '../context/LibraryContext'
 // Adds quick-action like/watchlist buttons and opens the detail modal
 // on click, while keeping the same visual language (rounded-xl poster,
 // gradient overlay, glass rating pill) as the rest of the Stitch UI.
+function formatAttribution(reason) {
+  if (!reason) return null
+  const cleaned = String(reason).trim()
+  const match = cleaned.match(/^Because you (?:liked|saved) ["']?(.+?)["']?$/i)
+  if (match) {
+    return `Similar to ${match[1]}`
+  }
+  if (/^Based on your (?:interest|taste)/i.test(cleaned) || /^Recommended/i.test(cleaned)) {
+    return 'Picked for your taste'
+  }
+  if (/^Trending/i.test(cleaned) || /^Popular/i.test(cleaned)) {
+    return 'Popular this week'
+  }
+  return cleaned
+}
+
 export default function DiscoverMovieCard({ movie, onSelect }) {
   const { isLiked, isWatchlisted, toggleLike, toggleWatchlist } = useLibrary()
   const liked = isLiked(movie.id)
   const watchlisted = isWatchlisted(movie.id)
+  const attribution = formatAttribution(movie.reason)
 
   return (
     <div className="movie-card flex flex-col group cursor-pointer" onClick={() => onSelect(movie)}>
@@ -92,12 +109,13 @@ export default function DiscoverMovieCard({ movie, onSelect }) {
       <p className="font-body-sm text-[11px] text-on-surface-variant truncate mt-1.5">
         {(movie.genres || []).join(' • ')}
       </p>
-      {movie.reason && (
-        <p className="font-label-caps text-[10px] text-secondary truncate mt-0.5 flex items-center gap-1 font-medium">
-          <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-            auto_awesome
-          </span>
-          <span className="truncate">{movie.reason}</span>
+      {attribution && (
+        <p
+          className="font-body-sm text-[11px] text-on-surface-variant/80 truncate flex items-center gap-1 mt-0.5"
+          title={attribution}
+        >
+          <span className="text-[10px] text-primary/75 leading-none select-none font-medium">↗</span>
+          <span className="truncate">{attribution}</span>
         </p>
       )}
     </div>

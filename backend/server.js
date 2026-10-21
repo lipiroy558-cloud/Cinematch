@@ -40,10 +40,14 @@ app.use(notFound)
 app.use(errorHandler)
 
 if (process.env.NODE_ENV !== 'test') {
-  connectDatabase().then(seedMovies).then(() => app.listen(env.port, () => console.log(`CineMatch backend listening on http://localhost:${env.port}`))).catch((error) => {
-    console.error(`CineMatch backend could not start: ${error.message}`)
-    process.exitCode = 1
+  app.listen(env.port, () => {
+    console.log(`CineMatch backend listening on http://localhost:${env.port}`)
   })
+  connectDatabase()
+    .then(seedMovies)
+    .catch((error) => {
+      console.warn(`Database connection notice: ${error.message}`)
+    })
 }
 
 export default app

@@ -181,7 +181,7 @@ export async function getPersonalizedRecommendations(req, res) {
     )
     const recommendations = (fallback.movies || []).slice(0, 15).map((m) => ({
       ...m,
-      reason: 'Trending with Cinematch members',
+      reason: 'Popular this week',
       matchScore: Math.round((m.rating || 7.0) * 10),
     }))
 
@@ -238,9 +238,7 @@ export async function getPersonalizedRecommendations(req, res) {
           const genreOverlap = (rec.genres || []).filter((g) => genreWeights[g]).length
           const baseWeight = isLiked ? 3 : 2
           const score = baseWeight * 2 + genreOverlap * 1.5 + (rec.rating || 0) * 0.5
-          const reason = isLiked
-            ? `Because you liked "${seed.title}"`
-            : `Because you saved "${seed.title}"`
+          const reason = seed?.title ? `Similar to ${seed.title}` : 'Picked for your taste'
 
           if (!candidateMap.has(rec.id) || candidateMap.get(rec.id).score < score) {
             candidateMap.set(rec.id, {
@@ -263,7 +261,7 @@ export async function getPersonalizedRecommendations(req, res) {
       const matchingGenre = (m.genres || []).find((g) => genreWeights[g])
       if (matchingGenre) {
         const score = (genreWeights[matchingGenre] || 1) + (m.rating || 0) * 0.5
-        const reason = `Based on your interest in ${matchingGenre}`
+        const reason = 'Picked for your taste'
         if (!candidateMap.has(m.id)) {
           candidateMap.set(m.id, {
             ...m,
