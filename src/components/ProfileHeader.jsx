@@ -1,7 +1,7 @@
 import { profile } from '../data/profile'
 import { useLibrary } from '../context/LibraryContext'
 
-// Avatar + member badge + name/handle + bio + action buttons.
+// Avatar + website member badge + name/handle + bio + action buttons.
 // Ambient glow blobs are preserved from the Stitch design.
 export default function ProfileHeader() {
   const { user, isAuthenticated } = useLibrary()
@@ -14,22 +14,43 @@ export default function ProfileHeader() {
       <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary-container/20 rounded-full blur-[72px] pointer-events-none" />
       <div className="absolute top-20 right-4 w-40 h-40 bg-secondary/10 rounded-full blur-[60px] pointer-events-none" />
 
-      {/* Avatar & Edit Badge */}
-      <div className="relative mb-3 group cursor-pointer">
-        <div className="w-28 h-28 rounded-full overflow-hidden shadow-[0_12px_38px_rgba(0,0,0,0.6)] p-1 bg-gradient-to-br from-primary-container to-secondary">
-          <img
-            alt={`${displayName} Avatar`}
-            className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-300"
-            src={profile.avatar}
-          />
+      {/* Avatar & Website Badge */}
+      <div className="relative mb-3 group">
+        <div className="w-28 h-28 rounded-full overflow-hidden shadow-[0_12px_38px_rgba(0,0,0,0.6)] p-1 bg-gradient-to-br from-primary-container via-rose-600 to-amber-500">
+          <div className="w-full h-full rounded-full bg-surface-container-high flex flex-col items-center justify-center text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+            {user?.avatar ? (
+              <img
+                alt={`${displayName} Avatar`}
+                className="w-full h-full object-cover"
+                src={user.avatar}
+              />
+            ) : user?.name ? (
+              <div className="flex flex-col items-center justify-center select-none">
+                <span className="text-4xl font-black text-white tracking-wider">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+                <span className="text-[10px] font-bold text-primary-container tracking-widest uppercase mt-0.5">
+                  CINEMATCH
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center select-none">
+                <span className="material-symbols-outlined text-4xl text-primary-container">
+                  movie
+                </span>
+                <span className="text-[9px] font-bold text-white/70 tracking-widest uppercase mt-1">
+                  CINEMATCH
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-        <button
-          aria-label="Edit Profile Picture"
-          type="button"
-          className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+        <div
+          title="Verified CineMatch Member Badge"
+          className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center shadow-lg ring-2 ring-surface"
         >
-          <span className="material-symbols-outlined text-[17px]">photo_camera</span>
-        </button>
+          <span className="material-symbols-outlined text-[17px]">verified</span>
+        </div>
       </div>
 
       {/* Member Badge */}
@@ -59,12 +80,20 @@ export default function ProfileHeader() {
           type="button"
           className="px-5 py-2 rounded-xl bg-primary-container text-on-primary-container font-title-sm text-body-sm shadow-[0_0_20px_rgba(225,29,72,0.35)] hover:shadow-[0_0_26px_rgba(225,29,72,0.5)] transition-all flex items-center gap-1.5 active:scale-95"
         >
-          <span className="material-symbols-outlined text-[18px]">edit_note</span>
-          <span>Edit Taste Bio</span>
+          <span className="material-symbols-outlined text-[18px]">local_activity</span>
+          <span>CineMatch VIP</span>
         </button>
         <button
-          aria-label="Share Taste Card"
+          aria-label="Share Profile"
           type="button"
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({ title: 'CineMatch Profile', url: window.location.href }).catch(() => {})
+            } else if (navigator.clipboard) {
+              navigator.clipboard.writeText(window.location.href)
+              alert('Profile link copied to clipboard!')
+            }
+          }}
           className="w-10 h-10 rounded-xl bg-surface-container-high text-on-surface flex items-center justify-center active:scale-95 transition-transform hover:bg-surface-bright"
         >
           <span className="material-symbols-outlined text-[20px]">ios_share</span>

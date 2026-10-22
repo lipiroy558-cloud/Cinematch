@@ -117,11 +117,21 @@ export default function Navbar({ activeView, onNavigate, onProfileClick, onSelec
                 onClick={onProfileClick}
                 className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/[0.06] transition-colors active:scale-95"
               >
-                <img
-                  alt={user?.name || 'User Avatar'}
-                  className="w-8 h-8 rounded-full object-cover ring-2 ring-primary-container/40"
-                  src={profile.navAvatar}
-                />
+                {user?.avatar ? (
+                  <img
+                    alt={user?.name || 'User Avatar'}
+                    className="w-8 h-8 rounded-full object-cover ring-2 ring-primary-container/40"
+                    src={user.avatar}
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary-container to-secondary flex items-center justify-center text-white font-bold text-xs ring-2 ring-primary-container/40 shadow-sm">
+                    {user?.name ? (
+                      user.name.charAt(0).toUpperCase()
+                    ) : (
+                      <span className="material-symbols-outlined text-[17px]">person</span>
+                    )}
+                  </div>
+                )}
                 <span className="hidden sm:inline text-xs font-semibold text-white truncate max-w-[5.5rem]">
                   {user?.name?.split(' ')[0] || 'Profile'}
                 </span>
