@@ -158,6 +158,33 @@ export async function normalizeMovie(item, genresById) {
     profile: actor.profile || (actor.profile_path ? imageUrl(actor.profile_path, 'w185') : ''),
   }))
 
+  // Extract official YouTube trailer
+  const videos = item.videos?.results || []
+  const trailerObj =
+    videos.find((v) => v.site === 'YouTube' && v.type === 'Trailer') ||
+    videos.find((v) => v.site === 'YouTube' && v.type === 'Teaser') ||
+    videos.find((v) => v.site === 'YouTube')
+  const trailerKey = trailerObj ? trailerObj.key : null
+
+  // Extract streaming providers (flatrate, rent, buy)
+  const wpResults = item['watch/providers']?.results || {}
+  const localWp = wpResults.IN || wpResults.US || wpResults.GB || wpResults.FR || Object.values(wpResults)[0] || {}
+  const streamProviders = (localWp.flatrate || []).slice(0, 5).map((p) => ({
+    name: p.provider_name,
+    logo: p.logo_path ? imageUrl(p.logo_path, 'w92') : '',
+  }))
+  const rentProviders = (localWp.rent || []).slice(0, 4).map((p) => ({
+    name: p.provider_name,
+    logo: p.logo_path ? imageUrl(p.logo_path, 'w92') : '',
+  }))
+  const buyProviders = (localWp.buy || []).slice(0, 4).map((p) => ({
+    name: p.provider_name,
+    logo: p.logo_path ? imageUrl(p.logo_path, 'w92') : '',
+  }))
+
+  const runtimeMinutes = Number(item.runtime || 0)
+  const runtimeFormatted = runtimeMinutes > 0 ? `${Math.floor(runtimeMinutes / 60)}h ${runtimeMinutes % 60}m` : ''
+
   return {
     id: `tmdb-${item.id}`,
     tmdbId: item.id,
@@ -167,6 +194,8 @@ export async function normalizeMovie(item, genresById) {
     rating: Number(item.vote_average || 0),
     genres: genreNames,
     description: item.overview || '',
+    tagline: item.tagline || '',
+    runtime: runtimeFormatted,
     poster: imageUrl(item.poster_path),
     backdrop: imageUrl(item.backdrop_path, 'w1280'),
     posterPath: item.poster_path || '',
@@ -174,6 +203,13 @@ export async function normalizeMovie(item, genresById) {
     popularity: Number(item.popularity || 0),
     director,
     cast,
+    trailerKey,
+    watchProviders: {
+      flatrate: streamProviders,
+      rent: rentProviders,
+      buy: buyProviders,
+      justWatchLink: localWp.link || '',
+    },
   }
 }
 

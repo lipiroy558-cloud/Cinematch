@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { useLibrary } from '../context/LibraryContext'
 import { fetchMovieById } from '../services/api'
 
-export default function MovieModal({ movie, onClose }) {
+export default function MovieModal({ movie, onClose, onSearchPerson }) {
   const { isLiked, isWatchlisted, toggleLike, toggleWatchlist } = useLibrary()
   const [details, setDetails] = useState(movie)
   const [loadingDetails, setLoadingDetails] = useState(false)
   const [showCast, setShowCast] = useState(false)
+  const [isPlayingTrailer, setIsPlayingTrailer] = useState(false)
 
   useEffect(() => {
     const handleKey = (event) => {
@@ -19,11 +20,8 @@ export default function MovieModal({ movie, onClose }) {
   useEffect(() => {
     setDetails(movie)
     setShowCast(false)
+    setIsPlayingTrailer(false)
     if (!movie) return
-
-    if (movie.director && Array.isArray(movie.cast) && movie.cast.length > 0) {
-      return
-    }
 
     let active = true
     setLoadingDetails(true)
@@ -34,7 +32,7 @@ export default function MovieModal({ movie, onClose }) {
         }
       })
       .catch((err) => {
-        console.warn('Could not load movie credits:', err.message)
+        console.warn('Could not load movie details:', err.message)
       })
       .finally(() => {
         if (active) setLoadingDetails(false)
@@ -51,34 +49,87 @@ export default function MovieModal({ movie, onClose }) {
   const watchlisted = isWatchlisted(current.id || movie.id)
   const castList = current.cast || []
   const hasCast = castList.length > 0 || loadingDetails
+  const trailerKey = current.trailerKey
+  const providers = current.watchProviders || {}
+  const streamList = providers.flatrate || []
+  const rentList = providers.rent || []
+  const hasProviders = streamList.length > 0 || rentList.length > 0
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/80 p-0 sm:p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/80 p-0 sm:p-6 backdrop-blur-sm transition-opacity"
       onClick={onClose}
     >
       <article
-        className="relative w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-[1.5rem] sm:rounded-[1.5rem] bg-[#151820] border border-white/10 shadow-2xl"
+        className="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-[1.5rem] sm:rounded-[1.5rem] bg-[#151820] border border-white/10 shadow-2xl scrollbar-thin scrollbar-thumb-white/10"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative h-44 sm:h-56 overflow-hidden">
-          <img
-            src={current.backdrop || current.poster || '/movie-fallback.svg'}
-            onError={(event) => {
-              event.currentTarget.src = '/movie-fallback.svg'
-            }}
-            alt=""
-            className="h-full w-full object-cover opacity-70"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#151820] via-[#151820]/30 to-transparent" />
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            className="absolute top-4 right-4 h-9 w-9 rounded-full border border-white/15 bg-black/40 text-white backdrop-blur-md transition hover:bg-primary-container flex items-center justify-center"
-          >
-            <span className="material-symbols-outlined text-[18px]">close</span>
-          </button>
+        {/* Backdrop or Trailer Video Player */}
+        <div className="relative overflow-hidden bg-black">
+          {isPlayingTrailer && trailerKey ? (
+            <div className="relative aspect-video w-full bg-black">
+              <iframe
+                title={`${current.title} Official Trailer`}
+                src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1`}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+              <button
+                type="button"
+                onClick={() => setIsPlayingTrailer(false)}
+                className="absolute top-3 left-3 px-3 py-1.5 rounded-full bg-black/70 hover:bg-black text-white text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 transition z-20 border border-white/20 active:scale-95 shadow-lg"
+              >
+                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                <span>Close Trailer</span>
+              </button>
+            </div>
+          ) : (
+            <div className="relative h-48 sm:h-60 overflow-hidden">
+              <img
+                src={current.backdrop || current.poster || '/movie-fallback.svg'}
+                onError={(event) => {
+                  event.currentTarget.src = '/movie-fallback.svg'
+                }}
+                alt=""
+                className="h-full w-full object-cover opacity-60 transition duration-500 scale-100 hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#151820] via-[#151820]/40 to-transparent" />
+
+              {/* Watch Trailer Button Overlay */}
+              {trailerKey ? (
+                <button
+                  type="button"
+                  onClick={() => setIsPlayingTrailer(true)}
+                  className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2 px-5 py-2.5 rounded-full bg-rose-600/90 hover:bg-rose-600 text-white font-bold text-xs uppercase tracking-wider shadow-2xl backdrop-blur-md border border-white/25 hover:scale-105 active:scale-95 transition-all group cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
+                    play_circle
+                  </span>
+                  <span>Watch Trailer</span>
+                </button>
+              ) : (
+                <a
+                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(current.title + ' ' + (current.year || '') + ' official trailer')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-xs backdrop-blur-md border border-white/20 hover:scale-105 active:scale-95 transition-all"
+                >
+                  <span className="material-symbols-outlined text-[18px]">search</span>
+                  <span>Search Trailer on YouTube</span>
+                </a>
+              )}
+
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={onClose}
+                className="absolute top-4 right-4 h-9 w-9 rounded-full border border-white/15 bg-black/50 text-white backdrop-blur-md transition hover:bg-rose-600 flex items-center justify-center z-10 active:scale-90"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="relative grid gap-5 px-5 pb-6 sm:grid-cols-[8.5rem_1fr] sm:px-7 sm:pb-7">
@@ -99,6 +150,11 @@ export default function MovieModal({ movie, onClose }) {
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                   {current.title}
                 </h2>
+                {current.tagline && (
+                  <p className="text-xs text-white/50 italic mt-0.5 line-clamp-1">
+                    "{current.tagline}"
+                  </p>
+                )}
               </div>
               <span className="rounded-lg bg-secondary/10 px-2.5 py-1 text-xs font-bold text-secondary flex items-center gap-1 shrink-0">
                 ★ {(current.rating || 0).toFixed(1)}
@@ -106,7 +162,13 @@ export default function MovieModal({ movie, onClose }) {
             </div>
 
             <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
-              <span className="font-medium text-white/90">{current.year || '—'}</span>
+              <span className="font-semibold text-white/90">{current.year || '—'}</span>
+              {current.runtime && (
+                <>
+                  <span>•</span>
+                  <span className="text-white/80 font-medium">{current.runtime}</span>
+                </>
+              )}
               <span>•</span>
               {(current.genres || []).map((genre) => (
                 <span
@@ -123,7 +185,14 @@ export default function MovieModal({ movie, onClose }) {
                 <span className="text-[10px] font-bold uppercase tracking-[.16em] text-secondary">
                   Directed by
                 </span>
-                <span className="font-semibold text-white">{current.director}</span>
+                <button
+                  type="button"
+                  onClick={() => onSearchPerson && onSearchPerson(current.director)}
+                  className="font-semibold text-white hover:text-primary-container transition underline-offset-2 hover:underline"
+                  title={`Find more films directed by ${current.director}`}
+                >
+                  {current.director}
+                </button>
               </p>
             )}
 
@@ -131,11 +200,12 @@ export default function MovieModal({ movie, onClose }) {
               {current.description || 'No overview is available for this movie yet.'}
             </p>
 
+            {/* Actions: Watchlist & Like */}
             <div className="mt-5 flex gap-3">
               <button
                 type="button"
                 onClick={() => toggleWatchlist(current.id || movie.id)}
-                className="flex-1 rounded-xl bg-primary-container px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5 shadow-md"
+                className="flex-1 rounded-xl bg-primary-container px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5 shadow-md active:scale-95"
               >
                 <span className="material-symbols-outlined text-[18px]">
                   {watchlisted ? 'bookmark' : 'bookmark_add'}
@@ -146,9 +216,9 @@ export default function MovieModal({ movie, onClose }) {
                 type="button"
                 aria-label={liked ? 'Unlike' : 'Like'}
                 onClick={() => toggleLike(current.id || movie.id)}
-                className={`h-11 w-11 rounded-xl border transition flex items-center justify-center shrink-0 ${
+                className={`h-11 w-11 rounded-xl border transition flex items-center justify-center shrink-0 active:scale-95 ${
                   liked
-                    ? 'border-primary-container bg-primary-container text-white'
+                    ? 'border-primary-container bg-primary-container text-white shadow-md'
                     : 'border-white/10 bg-white/[0.05] text-on-surface-variant hover:text-white'
                 }`}
               >
@@ -156,13 +226,74 @@ export default function MovieModal({ movie, onClose }) {
               </button>
             </div>
 
+            {/* "Where to Watch" Streaming Availability */}
+            {hasProviders && (
+              <div className="mt-4 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-[.18em] text-secondary flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px]">tv</span>
+                    Where to Watch
+                  </span>
+                  {providers.justWatchLink && (
+                    <a
+                      href={providers.justWatchLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] text-white/50 hover:text-white transition flex items-center gap-0.5"
+                    >
+                      <span>Powered by JustWatch</span>
+                      <span className="material-symbols-outlined text-[11px]">open_in_new</span>
+                    </a>
+                  )}
+                </div>
+
+                {streamList.length > 0 && (
+                  <div className="mb-2">
+                    <span className="text-[11px] text-white/70 block mb-1 font-medium">Stream on:</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {streamList.map((p) => (
+                        <div
+                          key={p.name}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-high border border-white/10 text-white text-xs font-semibold shadow-sm"
+                        >
+                          {p.logo ? (
+                            <img src={p.logo} alt={p.name} className="w-4 h-4 rounded object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined text-[14px] text-primary">play_arrow</span>
+                          )}
+                          <span>{p.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {streamList.length === 0 && rentList.length > 0 && (
+                  <div>
+                    <span className="text-[11px] text-white/70 block mb-1 font-medium">Rent / Buy on:</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {rentList.map((p) => (
+                        <div
+                          key={p.name}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-high border border-white/10 text-white/90 text-xs font-medium"
+                        >
+                          {p.logo && <img src={p.logo} alt={p.name} className="w-4 h-4 rounded object-cover" />}
+                          <span>{p.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Collapsible Cast Section */}
             {hasCast && (
               <div className="mt-4 pt-3 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setShowCast((prev) => !prev)}
-                  className="flex w-full items-center justify-between py-1 text-xs font-semibold text-on-surface-variant hover:text-white transition-colors group"
+                  className="flex w-full items-center justify-between py-1 text-xs font-semibold text-on-surface-variant hover:text-white transition-colors group cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-[.2em] text-secondary group-hover:text-primary transition-colors">
@@ -204,7 +335,7 @@ export default function MovieModal({ movie, onClose }) {
                         {castList.map((actor) => (
                           <div
                             key={actor.id || actor.name}
-                            className="flex items-center gap-2.5 rounded-lg bg-white/[0.03] p-1.5 border border-white/5 hover:border-white/15 transition-colors"
+                            className="flex items-center gap-2.5 rounded-lg bg-white/[0.03] p-1.5 border border-white/5 hover:border-white/20 transition-all group"
                           >
                             <div className="w-8 h-8 rounded-full overflow-hidden bg-white/5 shrink-0 border border-white/10 flex items-center justify-center">
                               {actor.profile ? (
@@ -228,12 +359,14 @@ export default function MovieModal({ movie, onClose }) {
                               </span>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p
-                                className="text-[11px] font-semibold text-white truncate"
-                                title={actor.name}
+                              <button
+                                type="button"
+                                onClick={() => onSearchPerson && onSearchPerson(actor.name)}
+                                className="text-[11px] font-semibold text-white group-hover:text-primary-container truncate text-left w-full hover:underline"
+                                title={`Find movies with ${actor.name}`}
                               >
                                 {actor.name}
-                              </p>
+                              </button>
                               <p
                                 className="text-[10px] text-on-surface-variant truncate"
                                 title={actor.character}

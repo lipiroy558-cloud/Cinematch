@@ -343,7 +343,7 @@ export async function getMovieById(req, res) {
   const rawId = req.params.id.replace(/^tmdb-/, '')
   if (env.tmdbApiKey && /^\d+$/.test(rawId)) {
     try {
-      const item = await tmdbRequest(`/movie/${rawId}`, { append_to_response: 'credits' })
+      const item = await tmdbRequest(`/movie/${rawId}`, { append_to_response: 'credits,videos,watch/providers' })
       const movie = await normalizeMovie(item)
       if (mongoose.connection.readyState === 1) {
         Movie.updateOne(
@@ -386,7 +386,7 @@ export async function getMovieById(req, res) {
               if (matched) tmdbId = matched.tmdbId
             }
             if (tmdbId) {
-              const item = await tmdbRequest(`/movie/${tmdbId}`, { append_to_response: 'credits' })
+              const item = await tmdbRequest(`/movie/${tmdbId}`, { append_to_response: 'credits,videos,watch/providers' })
               const enriched = await normalizeMovie(item)
               Movie.updateOne(
                 { _id: movie._id },

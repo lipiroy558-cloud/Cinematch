@@ -25,6 +25,7 @@ function AppContent() {
   const [view, setView] = useState('home')
   const [discoverGenre, setDiscoverGenre] = useState('All')
   const [discoverIndustry, setDiscoverIndustry] = useState('all')
+  const [discoverQuery, setDiscoverQuery] = useState('')
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [profileMovies, setProfileMovies] = useState([])
   const {
@@ -51,6 +52,14 @@ function AppContent() {
     setView('discover')
   }
 
+
+  const handleSearchPerson = (name) => {
+    setSelectedMovie(null)
+    setDiscoverQuery(name)
+    setDiscoverIndustry('all')
+    setDiscoverGenre('All')
+    setView('discover')
+  }
   const goToDiscoverWithIndustry = (industry) => {
     setDiscoverIndustry(industry)
     setDiscoverGenre('All')
@@ -80,6 +89,7 @@ function AppContent() {
           <DiscoverView
             initialGenre={discoverGenre}
             initialIndustry={discoverIndustry}
+            initialQuery={discoverQuery}
             onSelectMovie={setSelectedMovie}
           />
         )}
@@ -112,7 +122,7 @@ function AppContent() {
 
       <BottomNav activeTab={view} onChange={setView} watchlistCount={watchlistIds.length} />
 
-      <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />
+      <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} onSearchPerson={handleSearchPerson} />
 
       <AuthModal isOpen={authModalOpen} initialMode={authModalMode} onClose={closeAuth} />
 

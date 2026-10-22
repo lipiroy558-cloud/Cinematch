@@ -283,11 +283,124 @@ export function fetchPopularMovies(page = 1) { return moviesPage(`/movies/popula
 export async function fetchMovieById(id) {
   try {
     const data = await request(`/movies/${id}`)
-    if (data) return data
+    if (data && (data.trailerKey || data.cast?.length > 0)) return data
+    if (data) {
+      const rawId = String(id).replace(/^tmdb-/, '')
+      if (/^\d+$/.test(rawId)) {
+        try {
+          const tmdbRes = await fetch(
+            `https://api.themoviedb.org/3/movie/${rawId}?api_key=${TMDB_CLIENT_KEY}&append_to_response=credits,videos,watch/providers`
+          )
+          if (tmdbRes.ok) {
+            const item = await tmdbRes.json()
+            const videos = item.videos?.results || []
+            const trailerObj =
+              videos.find((v) => v.site === 'YouTube' && v.type === 'Trailer') ||
+              videos.find((v) => v.site === 'YouTube' && v.type === 'Teaser') ||
+              videos.find((v) => v.site === 'YouTube')
+            const wp = item['watch/providers']?.results || {}
+            const localWp = wp.IN || wp.US || wp.GB || Object.values(wp)[0] || {}
+            return {
+              ...data,
+              trailerKey: trailerObj ? trailerObj.key : null,
+              runtime: item.runtime
+                ? `${Math.floor(item.runtime / 60)}h ${item.runtime % 60}m`
+                : data.runtime,
+              tagline: item.tagline || data.tagline,
+              watchProviders: {
+                flatrate: (localWp.flatrate || []).slice(0, 5).map((p) => ({
+                  name: p.provider_name,
+                  logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : '',
+                })),
+                rent: (localWp.rent || []).slice(0, 4).map((p) => ({
+                  name: p.provider_name,
+                  logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : '',
+                })),
+                buy: (localWp.buy || []).slice(0, 4).map((p) => ({
+                  name: p.provider_name,
+                  logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : '',
+                })),
+                justWatchLink: localWp.link || '',
+              },
+            }
+          }
+        } catch {}
+      }
+      return data
+    }
   } catch (err) {
     console.warn(`fetchMovieById(${id}) fallback:`, err.message)
   }
-  return MOVIES.find((m) => m.id === id || `tmdb-${m.id}` === id || m.title?.toLowerCase() === String(id).toLowerCase()) || null
+
+  // Client TMDB fetch fallback
+  const rawId = String(id).replace(/^tmdb-/, '')
+  if (/^\d+$/.test(rawId)) {
+    try {
+      const tmdbRes = await fetch(
+        `https://api.themoviedb.org/3/movie/${rawId}?api_key=${TMDB_CLIENT_KEY}&append_to_response=credits,videos,watch/providers`
+      )
+      if (tmdbRes.ok) {
+        const item = await tmdbRes.json()
+        const videos = item.videos?.results || []
+        const trailerObj =
+          videos.find((v) => v.site === 'YouTube' && v.type === 'Trailer') ||
+          videos.find((v) => v.site === 'YouTube' && v.type === 'Teaser') ||
+          videos.find((v) => v.site === 'YouTube')
+        const wp = item['watch/providers']?.results || {}
+        const localWp = wp.IN || wp.US || wp.GB || Object.values(wp)[0] || {}
+        const credits = item.credits || {}
+        const director = credits.crew?.find((c) => c.job === 'Director')?.name || ''
+        const cast = (credits.cast || []).slice(0, 12).map((actor) => ({
+          id: actor.id,
+          name: actor.name || 'Unknown',
+          character: actor.character || '',
+          profile: actor.profile_path ? `https://image.tmdb.org/t/p/w185${actor.profile_path}` : '',
+        }))
+        return {
+          id: `tmdb-${item.id}`,
+          tmdbId: item.id,
+          title: item.title,
+          year: Number(item.release_date?.slice(0, 4)) || null,
+          rating: Number(item.vote_average || 0),
+          genres: (item.genres || []).map((g) => g.name),
+          description: item.overview || '',
+          tagline: item.tagline || '',
+          runtime: item.runtime
+            ? `${Math.floor(item.runtime / 60)}h ${item.runtime % 60}m`
+            : '',
+          poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '',
+          backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}` : '',
+          director,
+          cast,
+          trailerKey: trailerObj ? trailerObj.key : null,
+          watchProviders: {
+            flatrate: (localWp.flatrate || []).slice(0, 5).map((p) => ({
+              name: p.provider_name,
+              logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : '',
+            })),
+            rent: (localWp.rent || []).slice(0, 4).map((p) => ({
+              name: p.provider_name,
+              logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : '',
+            })),
+            buy: (localWp.buy || []).slice(0, 4).map((p) => ({
+              name: p.provider_name,
+              logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : '',
+            })),
+            justWatchLink: localWp.link || '',
+          },
+        }
+      }
+    } catch {}
+  }
+
+  return (
+    MOVIES.find(
+      (m) =>
+        m.id === id ||
+        `tmdb-${m.id}` === id ||
+        m.title?.toLowerCase() === String(id).toLowerCase()
+    ) || null
+  )
 }
 
 export async function fetchMoviesByIds(ids = []) {
