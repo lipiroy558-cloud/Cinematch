@@ -41,6 +41,13 @@ export default function DiscoverMovieCard({ movie, onSelect }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/5 to-transparent opacity-95" />
 
+        {/* Hover Play Badge */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div className="w-11 h-11 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-xl backdrop-blur-md scale-90 group-hover:scale-100 transition-transform">
+            <span className="material-symbols-outlined text-[24px]">play_arrow</span>
+          </div>
+        </div>
+
         {/* Rating badge */}
         <div className="absolute top-2 right-2 px-2 py-0.5 rounded-lg bg-surface-container-lowest/90 backdrop-blur-md flex items-center gap-1 shadow-sm">
           <span

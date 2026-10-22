@@ -20,6 +20,13 @@ export default function MovieCard({ movie, onSelect }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent opacity-90" />
 
+        {/* Hover Play Badge */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div className="w-9 h-9 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-xl backdrop-blur-md scale-90 group-hover:scale-100 transition-transform">
+            <span className="material-symbols-outlined text-[20px]">play_arrow</span>
+          </div>
+        </div>
+
         {/* Rating Badge */}
         <div className="absolute top-2 right-2 px-2 py-0.5 rounded-lg bg-surface-container-lowest/90 backdrop-blur-md flex items-center gap-1 shadow-sm">
           <span
