@@ -88,16 +88,6 @@ export default function HomeView({ onNavigate, onSelectGenre, onSelectIndustry, 
             >
               Discover Movies
             </button>
-            {trending[0] && (
-              <button
-                type="button"
-                onClick={() => onSelectMovie(trending[0])}
-                className="rounded-full bg-rose-600 hover:bg-rose-500 px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-[20px]">play_circle</span>
-                <span>Watch Trailer</span>
-              </button>
-            )}
             <button
               type="button"
               onClick={() => document.getElementById('genre-explorer')?.scrollIntoView({ behavior: 'smooth' })}
@@ -118,19 +108,11 @@ export default function HomeView({ onNavigate, onSelectGenre, onSelectIndustry, 
           </div>
 
           {trending[0] && (
-            <div className="mt-8 flex items-center gap-3 text-xs text-on-surface-variant flex-wrap">
+            <div className="mt-10 flex items-center gap-3 text-xs text-on-surface-variant">
               <span className="h-px w-8 bg-primary-container" />
-              <span>Featured:</span>
-              <strong className="text-white font-semibold">{trending[0].title}</strong>
-              <span className="text-secondary font-bold">★ {trending[0].rating?.toFixed(1) || '8.5'}</span>
-              <button
-                type="button"
-                onClick={() => onSelectMovie(trending[0])}
-                className="ml-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:scale-105 active:scale-95 transition-all"
-              >
-                <span className="material-symbols-outlined text-[16px]">play_circle</span>
-                <span>Watch Trailer & Details</span>
-              </button>
+              <span>Featured now</span>
+              <strong className="text-white">{trending[0].title}</strong>
+              <span>★ {trending[0].rating?.toFixed(1) || '8.5'}</span>
             </div>
           )}
         </div>
