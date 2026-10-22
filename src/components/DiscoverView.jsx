@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GENRES } from '../data/movies'
 import { fetchDiscoverMovies } from '../services/api'
 import DiscoverMovieCard from './DiscoverMovieCard'
@@ -121,6 +121,24 @@ export default function DiscoverView({ initialGenre = 'All', initialIndustry = '
       setIndustry('hollywood')
     }
   }, [query, industry])
+
+  const sentinelRef = useRef(null)
+
+  // Infinite scroll: auto load next page when nearing bottom
+  useEffect(() => {
+    if (!sentinelRef.current) return
+    const el = sentinelRef.current
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingMore && page < pagination.totalPages) {
+          loadMore()
+        }
+      },
+      { rootMargin: '400px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [loadingMore, page, pagination.totalPages, debouncedQuery, genre, industry, minRating, year, sort])
 
   // Primary data loader (page 1)
   useEffect(() => {

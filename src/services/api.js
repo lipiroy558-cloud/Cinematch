@@ -111,6 +111,148 @@ const localFallbackPage = (path) => {
   }
 }
 
+const TMDB_CLIENT_KEY = 'bc0ad1b6c5aa93f7633b2744aaf69dd6'
+
+const TMDB_GENRE_MAP = {
+  action: 28,
+  adventure: 12,
+  animation: 16,
+  comedy: 35,
+  crime: 80,
+  documentary: 99,
+  drama: 18,
+  family: 10751,
+  fantasy: 14,
+  history: 36,
+  horror: 27,
+  music: 10402,
+  mystery: 9648,
+  romance: 10749,
+  'sci-fi': 878,
+  'science fiction': 878,
+  thriller: 53,
+  'psych thriller': 53,
+  'neo-noir': 80,
+  dystopian: 878,
+  'art house': 18,
+  war: 10752,
+  western: 37,
+}
+
+const TMDB_INDUSTRY_PARAMS = {
+  bollywood: { with_original_language: 'hi|te|ta|ml|bn', with_origin_country: 'IN' },
+  hollywood: { with_original_language: 'en', with_origin_country: 'US' },
+  french: { with_original_language: 'fr' },
+  korean: { with_original_language: 'ko' },
+  japanese: { with_original_language: 'ja' },
+  spanish: { with_original_language: 'es' },
+}
+
+const formatTmdbItem = (m) => {
+  const rel = m.release_date || ''
+  return {
+    id: `tmdb-${m.id}`,
+    tmdbId: m.id,
+    title: m.title || m.original_title || 'Untitled',
+    year: Number(rel.slice(0, 4)) || null,
+    rating: Number(m.vote_average ? m.vote_average.toFixed(1) : 0),
+    genres: [],
+    description: m.overview || '',
+    poster: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500',
+    backdrop: m.backdrop_path ? `https://image.tmdb.org/t/p/w1280${m.backdrop_path}` : '',
+    popularity: Number(m.popularity || 0),
+  }
+}
+
+async function fetchFromTmdbClient(path) {
+  try {
+    const url = new URL(`http://dummy${path}`)
+    const page = url.searchParams.get('page') || '1'
+    let query = url.searchParams.get('q') || url.searchParams.get('query') || ''
+    const genre = (url.searchParams.get('genre') || '').toLowerCase()
+    let industry = (url.searchParams.get('industry') || 'all').toLowerCase()
+    const year = (url.searchParams.get('year') || '').toLowerCase()
+    const minRating = Number(url.searchParams.get('minRating') || 0)
+    const sort = url.searchParams.get('sort') || 'popularity.desc'
+
+    // Detect natural language industry intent
+    if (query) {
+      for (const item of INDUSTRY_INTENTS) {
+        if (item.regex.test(query)) {
+          if (!industry || industry === 'all') industry = item.key
+          query = query.replace(item.regex, ' ').replace(/\s+/g, ' ').trim()
+          break
+        }
+      }
+    }
+
+    const tmdbUrl = new URL(query ? 'https://api.themoviedb.org/3/search/movie' : 'https://api.themoviedb.org/3/discover/movie')
+    tmdbUrl.searchParams.set('api_key', TMDB_CLIENT_KEY)
+    tmdbUrl.searchParams.set('language', 'en-US')
+    tmdbUrl.searchParams.set('page', page)
+    tmdbUrl.searchParams.set('include_adult', 'false')
+
+    if (query) {
+      tmdbUrl.searchParams.set('query', query)
+      if (/^\d{4}$/.test(year)) tmdbUrl.searchParams.set('primary_release_year', year)
+    } else {
+      tmdbUrl.searchParams.set('sort_by', sort === 'rating-desc' ? 'vote_average.desc' : sort === 'year-desc' ? 'primary_release_date.desc' : 'popularity.desc')
+      if (sort === 'rating-desc') tmdbUrl.searchParams.set('vote_count.gte', '50')
+      if (minRating > 0) tmdbUrl.searchParams.set('vote_average.gte', String(minRating))
+
+      if (industry && industry !== 'all' && TMDB_INDUSTRY_PARAMS[industry]) {
+        for (const [k, v] of Object.entries(TMDB_INDUSTRY_PARAMS[industry])) {
+          tmdbUrl.searchParams.set(k, v)
+        }
+      }
+
+      if (genre && genre !== 'all' && TMDB_GENRE_MAP[genre]) {
+        tmdbUrl.searchParams.set('with_genres', String(TMDB_GENRE_MAP[genre]))
+      }
+
+      if (/^\d{4}$/.test(year)) {
+        tmdbUrl.searchParams.set('primary_release_year', year)
+      } else if (year === 'before-2016' || year === 'lte-2015') {
+        tmdbUrl.searchParams.set('primary_release_date.lte', '2015-12-31')
+      } else if (year === 'before-2015' || year === 'lte-2014') {
+        tmdbUrl.searchParams.set('primary_release_date.lte', '2014-12-31')
+      } else if (year === '2010-2015') {
+        tmdbUrl.searchParams.set('primary_release_date.gte', '2010-01-01')
+        tmdbUrl.searchParams.set('primary_release_date.lte', '2015-12-31')
+      } else if (year === '2000s') {
+        tmdbUrl.searchParams.set('primary_release_date.gte', '2000-01-01')
+        tmdbUrl.searchParams.set('primary_release_date.lte', '2009-12-31')
+      } else if (year === '1990s') {
+        tmdbUrl.searchParams.set('primary_release_date.gte', '1990-01-01')
+        tmdbUrl.searchParams.set('primary_release_date.lte', '1999-12-31')
+      } else if (year === '1980s') {
+        tmdbUrl.searchParams.set('primary_release_date.gte', '1980-01-01')
+        tmdbUrl.searchParams.set('primary_release_date.lte', '1989-12-31')
+      } else if (year === 'classic-pre-1980' || year === 'before-1980') {
+        tmdbUrl.searchParams.set('primary_release_date.lte', '1979-12-31')
+      }
+    }
+
+    const res = await fetch(tmdbUrl.toString())
+    if (!res.ok) throw new Error(`TMDB HTTP ${res.status}`)
+    const data = await res.json()
+    const results = Array.isArray(data.results) ? data.results : []
+    const movies = results.map(formatTmdbItem)
+
+    return {
+      movies,
+      pagination: {
+        page: Number(page),
+        totalPages: Math.min(data.total_pages || 1, 500),
+        totalResults: data.total_results || movies.length,
+      },
+    }
+  } catch (e) {
+    console.warn('fetchFromTmdbClient fallback notice:', e.message)
+    return null
+  }
+}
+
 const moviesPage = async (path) => {
   try {
     const payload = await request(path)
@@ -121,8 +263,16 @@ const moviesPage = async (path) => {
       return { movies: payload, pagination: { page: 1, totalPages: 1, totalResults: payload.length } }
     }
   } catch (err) {
-    console.warn(`API request to ${path} notice: ${err.message}; using catalog fallback`)
+    console.warn(`API request to ${path} notice: ${err.message}; trying direct TMDB catalog`)
   }
+
+  // Fallback 1: Direct TMDB Client Service
+  const tmdbRes = await fetchFromTmdbClient(path)
+  if (tmdbRes && tmdbRes.movies && tmdbRes.movies.length > 0) {
+    return tmdbRes
+  }
+
+  // Fallback 2: Local Built-in Catalog
   return localFallbackPage(path)
 }
 
