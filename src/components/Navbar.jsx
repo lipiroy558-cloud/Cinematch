@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { profile } from '../data/profile'
 import { searchMovies } from '../services/api'
+import { useLibrary } from '../context/LibraryContext'
 
-// Fixed top header: logo + page title, working search, notifications,
-// and an avatar button that opens the Profile view. Visual layout is
-// unchanged from the Stitch design; the search dropdown is an overlay
-// so it never pushes page content down.
+// Fixed top header: logo + nav links, working search, notifications,
+// and prominent Sign In / User Profile button right in front.
 export default function Navbar({ activeView, onNavigate, onProfileClick, onSelectMovie }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [remoteResults, setRemoteResults] = useState([])
   const [searchError, setSearchError] = useState(null)
   const inputRef = useRef(null)
+  const { user, isAuthenticated, openAuth } = useLibrary()
 
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus()
@@ -19,10 +19,21 @@ export default function Navbar({ activeView, onNavigate, onProfileClick, onSelec
 
   useEffect(() => {
     const q = query.trim()
-    if (!q) { setRemoteResults([]); setSearchError(null); return undefined }
-    const timer = setTimeout(() => searchMovies(q).then(setRemoteResults).catch((e) => setSearchError(e.message)), 300)
+    if (!q) {
+      setRemoteResults([])
+      setSearchError(null)
+      return undefined
+    }
+    const timer = setTimeout(
+      () =>
+        searchMovies(q)
+          .then(setRemoteResults)
+          .catch((e) => setSearchError(e.message)),
+      300
+    )
     return () => clearTimeout(timer)
   }, [query])
+
   const results = remoteResults
 
   const closeSearch = () => {
@@ -39,13 +50,37 @@ export default function Navbar({ activeView, onNavigate, onProfileClick, onSelec
     <>
       <header className="fixed top-0 w-full z-50 pt-safe bg-[#0b0d12]/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.24)] border-b border-white/[0.07]">
         <div className="page-shell h-[4.5rem] px-4 sm:px-8 lg:px-12 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-space-sm min-w-0">
-            <img src="/cinematch-logo.svg" alt="CineMatch" className="h-9 w-auto max-w-[8.8rem] sm:max-w-[10.5rem] object-contain" />
+          <div className="flex items-center gap-space-sm min-w-0 cursor-pointer" onClick={() => onNavigate('home')}>
+            <img
+              src="/cinematch-logo.svg"
+              alt="CineMatch"
+              className="h-9 w-auto max-w-[8.8rem] sm:max-w-[10.5rem] object-contain"
+            />
           </div>
+
           <div className="hidden md:flex items-center gap-1 mr-auto ml-10">
-            {[['home', 'Home'], ['discover', 'Discover'], ['for-you', 'For You'], ['watchlist', 'Watchlist']].map(([id, label]) => <button key={id} type="button" onClick={() => onNavigate(id)} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${activeView === id ? 'bg-white/[0.08] text-white' : 'text-on-surface-variant hover:text-on-surface hover:bg-white/[0.04]'}`}>{label}</button>)}
+            {[
+              ['home', 'Home'],
+              ['discover', 'Discover'],
+              ['for-you', 'For You'],
+              ['watchlist', 'Watchlist'],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onNavigate(id)}
+                className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                  activeView === id
+                    ? 'bg-white/[0.08] text-white'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-white/[0.04]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-1">
+
+          <div className="flex items-center gap-2">
             <button
               aria-label={searchOpen ? 'Close Search' : 'Search'}
               type="button"
@@ -56,6 +91,7 @@ export default function Navbar({ activeView, onNavigate, onProfileClick, onSelec
                 {searchOpen ? 'close' : 'search'}
               </span>
             </button>
+
             <button
               aria-label="Notifications"
               type="button"
@@ -64,18 +100,33 @@ export default function Navbar({ activeView, onNavigate, onProfileClick, onSelec
               <span className="material-symbols-outlined text-[22px]">notifications</span>
               <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary-container ring-2 ring-surface shadow-[0_0_8px_rgba(225,29,72,0.8)]" />
             </button>
-            <button
-              type="button"
-              aria-label="Open Profile"
-              onClick={onProfileClick}
-              className="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
-            >
-              <img
-                alt="User Avatar"
-                className="w-8 h-8 rounded-full object-cover ring-2 ring-primary-container/40"
-                src={profile.navAvatar}
-              />
-            </button>
+
+            {!isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => openAuth('login')}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary-container text-white text-xs font-bold hover:bg-[#f02a55] transition shadow-md active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px]">login</span>
+                <span>Sign In</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                aria-label="Open Profile"
+                onClick={onProfileClick}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/[0.06] transition-colors active:scale-95"
+              >
+                <img
+                  alt={user?.name || 'User Avatar'}
+                  className="w-8 h-8 rounded-full object-cover ring-2 ring-primary-container/40"
+                  src={profile.navAvatar}
+                />
+                <span className="hidden sm:inline text-xs font-semibold text-white truncate max-w-[5.5rem]">
+                  {user?.name?.split(' ')[0] || 'Profile'}
+                </span>
+              </button>
+            )}
           </div>
         </div>
 

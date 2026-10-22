@@ -6,6 +6,7 @@ import DiscoverView from './components/DiscoverView'
 import ForYouView from './components/ForYouView'
 import WatchlistView from './components/WatchlistView'
 import MovieModal from './components/MovieModal'
+import AuthModal from './components/AuthModal'
 import ProfileHeader from './components/ProfileHeader'
 import QuickStats from './components/QuickStats'
 import TasteDNA from './components/TasteDNA'
@@ -26,8 +27,22 @@ function AppContent() {
   const [discoverIndustry, setDiscoverIndustry] = useState('all')
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [profileMovies, setProfileMovies] = useState([])
-  const { watchlistIds, likedIds, authPrompt, dismissAuthPrompt } = useLibrary()
-  useEffect(() => { fetchMovies().then((result) => setProfileMovies(result.movies.slice(0, 6))).catch(() => {}) }, [])
+  const {
+    watchlistIds,
+    likedIds,
+    authPrompt,
+    dismissAuthPrompt,
+    authModalOpen,
+    authModalMode,
+    openAuth,
+    closeAuth,
+  } = useLibrary()
+
+  useEffect(() => {
+    fetchMovies()
+      .then((result) => setProfileMovies(result.movies.slice(0, 6)))
+      .catch(() => {})
+  }, [])
 
   // Deep-link helpers into Discover with pre-filtered genre or cinema industry
   const goToDiscoverWithGenre = (genre) => {
@@ -44,7 +59,12 @@ function AppContent() {
 
   return (
     <>
-      <Navbar activeView={view} onNavigate={setView} onProfileClick={() => setView('profile')} onSelectMovie={setSelectedMovie} />
+      <Navbar
+        activeView={view}
+        onNavigate={setView}
+        onProfileClick={() => setView('profile')}
+        onSelectMovie={setSelectedMovie}
+      />
 
       <main className="flex flex-col relative w-full pt-16 pb-24 bg-surface min-h-screen">
         {view === 'home' && (
@@ -66,10 +86,12 @@ function AppContent() {
 
         {view === 'for-you' && <ForYouView onSelectMovie={setSelectedMovie} />}
 
-        {view === 'watchlist' && <WatchlistView onSelectMovie={setSelectedMovie} onNavigate={setView} />}
+        {view === 'watchlist' && (
+          <WatchlistView onSelectMovie={setSelectedMovie} onNavigate={setView} />
+        )}
 
         {view === 'profile' && (
-            <div className="page-shell flex flex-col w-full pb-10">
+          <div className="page-shell flex flex-col w-full pb-10">
             <ProfileHeader />
             <QuickStats watchlistCount={watchlistIds.length} likedCount={likedIds.length} />
             <TasteDNA />
@@ -77,8 +99,8 @@ function AppContent() {
               icon="history_toggle_off"
               title="Recently Watched & Rated"
               linkLabel="All (88)"
-               movies={profileMovies}
-               onSelectMovie={setSelectedMovie}
+              movies={profileMovies}
+              onSelectMovie={setSelectedMovie}
             />
 
             <AIPreferences />
@@ -91,6 +113,8 @@ function AppContent() {
       <BottomNav activeTab={view} onChange={setView} watchlistCount={watchlistIds.length} />
 
       <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />
+
+      <AuthModal isOpen={authModalOpen} initialMode={authModalMode} onClose={closeAuth} />
 
       {authPrompt && (
         <aside
@@ -107,8 +131,7 @@ function AppContent() {
               type="button"
               onClick={() => {
                 dismissAuthPrompt()
-                setSelectedMovie(null)
-                setView('profile')
+                openAuth('login')
               }}
               className="mt-1 text-xs font-bold text-secondary hover:underline flex items-center gap-1"
             >
