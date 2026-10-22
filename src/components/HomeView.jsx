@@ -88,6 +88,16 @@ export default function HomeView({ onNavigate, onSelectGenre, onSelectIndustry, 
             >
               Discover Movies
             </button>
+            {trending[0] && (
+              <button
+                type="button"
+                onClick={() => onSelectMovie(trending[0])}
+                className="rounded-full bg-rose-600 hover:bg-rose-500 px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[20px]">play_circle</span>
+                <span>Watch Trailer</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => document.getElementById('genre-explorer')?.scrollIntoView({ behavior: 'smooth' })}
