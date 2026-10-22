@@ -17,6 +17,18 @@ const RATING_OPTIONS = [
   { id: 9, label: '9.0+ Rating' },
 ]
 
+// Curated release eras & presets
+export const YEAR_FILTER_PRESETS = [
+  { id: 'all', label: 'Any Release Year' },
+  { id: 'before-2016', label: 'Before 2016 (Golden Era)' },
+  { id: 'before-2015', label: 'Before 2015' },
+  { id: '2010-2015', label: '2010 – 2015' },
+  { id: '2000s', label: '2000s (2000 – 2009)' },
+  { id: '1990s', label: '1990s (1990 – 1999)' },
+  { id: '1980s', label: '1980s (1980 – 1989)' },
+  { id: 'classic-pre-1980', label: 'Classic Cinema (Pre-1980)' },
+]
+
 // Generate release year options from current year down to 1970
 const currentYear = new Date().getFullYear()
 const YEAR_OPTIONS = Array.from({ length: currentYear - 1969 }, (_, i) => currentYear - i)
@@ -90,6 +102,25 @@ export default function DiscoverView({ initialGenre = 'All', initialIndustry = '
     setYear('all')
     setSort('popularity.desc')
   }, [])
+
+  // Smart detect industry when searching terms like "french movie", "bollywood"
+  useEffect(() => {
+    if (!query) return
+    const q = query.toLowerCase()
+    if (/\b(bollywood|hindi)\b/.test(q) && industry !== 'bollywood') {
+      setIndustry('bollywood')
+    } else if (/\bfrench\b/.test(q) && industry !== 'french') {
+      setIndustry('french')
+    } else if (/\bkorean\b/.test(q) && industry !== 'korean') {
+      setIndustry('korean')
+    } else if (/\b(japanese|anime)\b/.test(q) && industry !== 'japanese') {
+      setIndustry('japanese')
+    } else if (/\bspanish\b/.test(q) && industry !== 'spanish') {
+      setIndustry('spanish')
+    } else if (/\bhollywood\b/.test(q) && industry !== 'hollywood') {
+      setIndustry('hollywood')
+    }
+  }, [query, industry])
 
   // Primary data loader (page 1)
   useEffect(() => {
@@ -291,12 +322,20 @@ export default function DiscoverView({ initialGenre = 'All', initialIndustry = '
               onChange={(e) => setYear(e.target.value)}
               className="w-full h-10 pl-3 pr-8 rounded-xl bg-surface-container-high text-on-surface font-body-sm text-body-sm border border-outline-variant/30 focus:outline-none focus:border-primary-container/60 cursor-pointer appearance-none transition-all"
             >
-              <option value="all" className="bg-surface-container">Any Year</option>
-              {YEAR_OPTIONS.map((val) => (
-                <option key={val} value={val} className="bg-surface-container">
-                  {val}
-                </option>
-              ))}
+              <optgroup label="Eras & Presets" className="bg-surface-container font-semibold text-white/90">
+                {YEAR_FILTER_PRESETS.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-surface-container font-normal text-on-surface">
+                    {p.label}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Individual Years" className="bg-surface-container font-semibold text-white/90">
+                {YEAR_OPTIONS.map((val) => (
+                  <option key={val} value={String(val)} className="bg-surface-container font-normal text-on-surface">
+                    {val}
+                  </option>
+                ))}
+              </optgroup>
             </select>
             <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-outline">
               expand_more

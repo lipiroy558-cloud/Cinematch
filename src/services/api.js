@@ -25,30 +25,65 @@ export async function request(path, options = {}) {
   return data.data
 }
 
+const INDUSTRY_INTENTS = [
+  { key: 'bollywood', regex: /\b(bollywood|hindi|indian)\s*(movies?|films?|cinema)?\b/gi },
+  { key: 'french', regex: /\b(french)\s*(movies?|films?|cinema)?\b/gi },
+  { key: 'korean', regex: /\b(korean)\s*(movies?|films?|cinema)?\b/gi },
+  { key: 'japanese', regex: /\b(japanese|anime)\s*(movies?|films?|cinema)?\b/gi },
+  { key: 'spanish', regex: /\b(spanish)\s*(movies?|films?|cinema)?\b/gi },
+  { key: 'hollywood', regex: /\b(hollywood|american)\s*(movies?|films?|cinema)?\b/gi },
+]
+
+const parseYearFilter = (yr) => {
+  if (!yr || yr === 'all') return null
+  const s = String(yr).trim().toLowerCase()
+  if (/^\d{4}$/.test(s)) return (y) => y === Number(s)
+  if (s === 'before-2016' || s === 'lte-2015') return (y) => (y || 0) <= 2015
+  if (s === 'before-2015' || s === 'lte-2014') return (y) => (y || 0) <= 2014
+  if (s === '2010-2015') return (y) => (y || 0) >= 2010 && (y || 0) <= 2015
+  if (s === '2000s') return (y) => (y || 0) >= 2000 && (y || 0) <= 2009
+  if (s === '1990s') return (y) => (y || 0) >= 1990 && (y || 0) <= 1999
+  if (s === '1980s') return (y) => (y || 0) >= 1980 && (y || 0) <= 1989
+  if (s === 'classic-pre-1980' || s === 'before-1980') return (y) => (y || 0) <= 1979
+  return null
+}
+
 const localFallbackPage = (path) => {
   let list = [...MOVIES]
   try {
     const url = new URL(`http://dummy${path}`)
-    const query = url.searchParams.get('q') || url.searchParams.get('query') || ''
+    let query = url.searchParams.get('q') || url.searchParams.get('query') || ''
     const genre = url.searchParams.get('genre') || ''
-    const industry = (url.searchParams.get('industry') || 'all').toLowerCase()
+    let industry = (url.searchParams.get('industry') || 'all').toLowerCase()
     const year = url.searchParams.get('year') || ''
     const minRating = Number(url.searchParams.get('minRating') || url.searchParams.get('rating') || 0)
     const sort = url.searchParams.get('sort') || ''
+
+    // Detect natural language industry intent from query (e.g. "french movie", "bollywood")
+    if (query) {
+      for (const item of INDUSTRY_INTENTS) {
+        if (item.regex.test(query)) {
+          if (!industry || industry === 'all') industry = item.key
+          query = query.replace(item.regex, ' ').replace(/\s+/g, ' ').trim()
+          break
+        }
+      }
+    }
 
     if (industry && industry !== 'all') {
       list = list.filter((m) => (m.industry || '').toLowerCase() === industry)
     }
     if (query) {
       const q = query.toLowerCase()
-      list = list.filter((m) => m.title?.toLowerCase().includes(q))
+      list = list.filter((m) => m.title?.toLowerCase().includes(q) || m.description?.toLowerCase().includes(q))
     }
     if (genre && genre.toLowerCase() !== 'all') {
       const g = genre.toLowerCase()
       list = list.filter((m) => (m.genres || []).some((x) => x.toLowerCase() === g || x.toLowerCase().includes(g)))
     }
-    if (year && year !== 'all') {
-      list = list.filter((m) => String(m.year) === String(year))
+    const yearCheck = parseYearFilter(year)
+    if (yearCheck) {
+      list = list.filter((m) => yearCheck(m.year))
     }
     if (minRating > 0) {
       list = list.filter((m) => (m.rating || 0) >= minRating)
@@ -79,8 +114,8 @@ const localFallbackPage = (path) => {
 const moviesPage = async (path) => {
   try {
     const payload = await request(path)
-    if (payload && payload.movies && payload.pagination) {
-      if (payload.movies.length > 0) return payload
+    if (payload && Array.isArray(payload.movies) && payload.movies.length > 0) {
+      return payload
     }
     if (Array.isArray(payload) && payload.length > 0) {
       return { movies: payload, pagination: { page: 1, totalPages: 1, totalResults: payload.length } }

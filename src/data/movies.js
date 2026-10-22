@@ -3693,7 +3693,781 @@ export const MOVIES = [
       }
     ],
     "industry": "spanish"
-  }
+  },
+{
+  "id": "bajrangi-bhaijaan-2015",
+  "title": "Bajrangi Bhaijaan",
+  "year": 2015,
+  "industry": "bollywood",
+  "genres": [
+    "Drama",
+    "Action",
+    "Adventure"
+  ],
+  "rating": 8.1,
+  "poster": "https://image.tmdb.org/t/p/w500/vEBn00BvX8bN36g4N40Gv6tB5b9.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/lG7x0h5V6b6jN7z6U4t9Y6w8X.jpg",
+  "description": "An Indian man with a magnanimous heart takes a young mute Pakistani girl back to her homeland to reunite her with her family.",
+  "director": "Kabir Khan",
+  "cast": [
+    {
+      "name": "Salman Khan",
+      "character": "Pawan Kumar Chaturvedi"
+    },
+    {
+      "name": "Harshaali Malhotra",
+      "character": "Munni"
+    },
+    {
+      "name": "Nawazuddin Siddiqui",
+      "character": "Chand Nawab"
+    }
+  ]
+},
+{
+  "id": "baahubali-the-beginning-2015",
+  "title": "Baahubali: The Beginning",
+  "year": 2015,
+  "industry": "bollywood",
+  "genres": [
+    "Action",
+    "Drama"
+  ],
+  "rating": 8,
+  "poster": "https://image.tmdb.org/t/p/w500/9BAjt85amQXzhvUVvY2Wmn4Bv6L.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/y20Fk2Yv2w5t7Xy3P0vK9X1v3Z8.jpg",
+  "description": "A young man raised by tribal villagers learns about his royal heritage and embarks on a quest to free the queen of Mahishmati.",
+  "director": "S.S. Rajamouli",
+  "cast": [
+    {
+      "name": "Prabhas",
+      "character": "Baahubali / Shivudu"
+    },
+    {
+      "name": "Rana Daggubati",
+      "character": "Bhallaladeva"
+    },
+    {
+      "name": "Anushka Shetty",
+      "character": "Devasena"
+    }
+  ]
+},
+{
+  "id": "piku-2015",
+  "title": "Piku",
+  "year": 2015,
+  "industry": "bollywood",
+  "genres": [
+    "Comedy",
+    "Drama"
+  ],
+  "rating": 7.6,
+  "poster": "https://image.tmdb.org/t/p/w500/h6MvZvTzG2LqYw6C8n8P9X0qY6A.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/z9pX2yL5rQ8n7w3k0m1P4q6X9b7.jpg",
+  "description": "A road trip to Kolkata brings a quirky father and his ambitious daughter closer as they navigate life, family ties, and unusual habits.",
+  "director": "Shoojit Sircar",
+  "cast": [
+    {
+      "name": "Deepika Padukone",
+      "character": "Piku Banerjee"
+    },
+    {
+      "name": "Amitabh Bachchan",
+      "character": "Bhashkor Banerjee"
+    },
+    {
+      "name": "Irrfan Khan",
+      "character": "Rana Chaudhary"
+    }
+  ]
+},
+{
+  "id": "pk-2014",
+  "title": "PK",
+  "year": 2014,
+  "industry": "bollywood",
+  "genres": [
+    "Comedy",
+    "Drama",
+    "Sci-Fi"
+  ],
+  "rating": 8.1,
+  "poster": "https://image.tmdb.org/t/p/w500/7qzpY5P3m8q7R6v7k8W5L3q6b9.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/k9b8zL5q2X1v3m4w7t8y9z0P1A.jpg",
+  "description": "An innocent humanoid alien stranded on Earth questions dogma and human superstition in his search for his missing communication device.",
+  "director": "Rajkumar Hirani",
+  "cast": [
+    {
+      "name": "Aamir Khan",
+      "character": "PK"
+    },
+    {
+      "name": "Anushka Sharma",
+      "character": "Jagat Janani"
+    },
+    {
+      "name": "Sushant Singh Rajput",
+      "character": "Sarfaraz Yousuf"
+    }
+  ]
+},
+{
+  "id": "queen-2014",
+  "title": "Queen",
+  "year": 2014,
+  "industry": "bollywood",
+  "genres": [
+    "Comedy",
+    "Drama"
+  ],
+  "rating": 8.1,
+  "poster": "https://image.tmdb.org/t/p/w500/2f5t9w6Y7r8X0v1m2n3k4l5q6P.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/p9q0r1s2t3u4v5w6x7y8z9a0b1.jpg",
+  "description": "A modest Delhi girl whose wedding is abruptly cancelled decides to embark on her European honeymoon alone, discovering independence and self-worth.",
+  "director": "Vikas Bahl",
+  "cast": [
+    {
+      "name": "Kangana Ranaut",
+      "character": "Rani Mehra"
+    },
+    {
+      "name": "Lisa Haydon",
+      "character": "Vijayalakshmi"
+    },
+    {
+      "name": "Rajkummar Rao",
+      "character": "Vijay"
+    }
+  ]
+},
+{
+  "id": "haider-2014",
+  "title": "Haider",
+  "year": 2014,
+  "industry": "bollywood",
+  "genres": [
+    "Drama",
+    "Thriller",
+    "Crime"
+  ],
+  "rating": 8,
+  "poster": "https://image.tmdb.org/t/p/w500/9k8r7m6t5y4w3q2x1z0p9o8n7.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/1a2b3c4d5e6f7g8h9i0j1k2l3.jpg",
+  "description": "A young man returns to Kashmir amid the 1995 conflict to confront devastating secrets about his father disappearance and his uncle betrayal.",
+  "director": "Vishal Bhardwaj",
+  "cast": [
+    {
+      "name": "Shahid Kapoor",
+      "character": "Haider Meer"
+    },
+    {
+      "name": "Tabu",
+      "character": "Ghazala Meer"
+    },
+    {
+      "name": "Kay Kay Menon",
+      "character": "Khurram Meer"
+    }
+  ]
+},
+{
+  "id": "yeh-jawaani-hai-deewani-2013",
+  "title": "Yeh Jawaani Hai Deewani",
+  "year": 2013,
+  "industry": "bollywood",
+  "genres": [
+    "Romance",
+    "Drama",
+    "Comedy"
+  ],
+  "rating": 7.6,
+  "poster": "https://image.tmdb.org/t/p/w500/9w8r7m6t5y4w3q2x1z0p9o8n7a.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/1a2b3c4d5e6f7g8h9i0j1k2l3b.jpg",
+  "description": "Kabir and Naina meet during a trekking trip in the Himalayas, exploring ambitious dreams, youthful exuberance, and enduring love.",
+  "director": "Ayan Mukerji",
+  "cast": [
+    {
+      "name": "Ranbir Kapoor",
+      "character": "Kabir Thapar (Bunny)"
+    },
+    {
+      "name": "Deepika Padukone",
+      "character": "Naina Talwar"
+    },
+    {
+      "name": "Aditya Roy Kapur",
+      "character": "Avi"
+    }
+  ]
+},
+{
+  "id": "bhaag-milkha-bhaag-2013",
+  "title": "Bhaag Milkha Bhaag",
+  "year": 2013,
+  "industry": "bollywood",
+  "genres": [
+    "Drama"
+  ],
+  "rating": 8.2,
+  "poster": "https://image.tmdb.org/t/p/w500/7a8b9c0d1e2f3g4h5i6j7k8l9.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/9l8k7j6h5g4f3e2d1c0b9a8z7.jpg",
+  "description": "The biographical saga of The Flying Sikh, Milkha Singh, who overcame personal tragedy and partition trauma to become a world champion runner.",
+  "director": "Rakeysh Omprakash Mehra",
+  "cast": [
+    {
+      "name": "Farhan Akhtar",
+      "character": "Milkha Singh"
+    },
+    {
+      "name": "Sonam Kapoor",
+      "character": "Biro"
+    },
+    {
+      "name": "Divya Dutta",
+      "character": "Isri Kaur"
+    }
+  ]
+},
+{
+  "id": "barfi-2012",
+  "title": "Barfi!",
+  "year": 2012,
+  "industry": "bollywood",
+  "genres": [
+    "Comedy",
+    "Drama",
+    "Romance"
+  ],
+  "rating": 8.1,
+  "poster": "https://image.tmdb.org/t/p/w500/1m2n3o4p5q6r7s8t9u0v1w2x3.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/3x2w1v0u9t8s7r6q5p4o3n2m1.jpg",
+  "description": "A charming deaf and mute young man in Darjeeling forms a touching bond with two women that transcends societal expectations.",
+  "director": "Anurag Basu",
+  "cast": [
+    {
+      "name": "Ranbir Kapoor",
+      "character": "Murphy (Barfi)"
+    },
+    {
+      "name": "Priyanka Chopra",
+      "character": "Jhilmil Chatterjee"
+    },
+    {
+      "name": "Ileana D Cruz",
+      "character": "Shruti Ghosh"
+    }
+  ]
+},
+{
+  "id": "gangs-of-wasseypur-2012",
+  "title": "Gangs of Wasseypur",
+  "year": 2012,
+  "industry": "bollywood",
+  "genres": [
+    "Action",
+    "Crime",
+    "Drama"
+  ],
+  "rating": 8.2,
+  "poster": "https://image.tmdb.org/t/p/w500/9k0l1m2n3o4p5q6r7s8t9u0v1.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/1v0u9t8s7r6q5p4o3n2m1l0k9.jpg",
+  "description": "A multigenerational blood feud between rival families spans decades of coal mafia power struggles in rural Dhanbad.",
+  "director": "Anurag Kashyap",
+  "cast": [
+    {
+      "name": "Manoj Bajpayee",
+      "character": "Sardar Khan"
+    },
+    {
+      "name": "Nawazuddin Siddiqui",
+      "character": "Faizal Khan"
+    },
+    {
+      "name": "Richa Chadha",
+      "character": "Nagma Khatoon"
+    }
+  ]
+},
+{
+  "id": "kahaani-2012",
+  "title": "Kahaani",
+  "year": 2012,
+  "industry": "bollywood",
+  "genres": [
+    "Mystery",
+    "Thriller"
+  ],
+  "rating": 8.1,
+  "poster": "https://image.tmdb.org/t/p/w500/5a4b3c2d1e0f9g8h7i6j5k4l3.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/3l4k5j6i7h8g9f0e1d2c3b4a5.jpg",
+  "description": "A heavily pregnant woman arrives in Kolkata during Durga Puja in search of her missing husband, unravelling a web of deceit.",
+  "director": "Sujoy Ghosh",
+  "cast": [
+    {
+      "name": "Vidya Balan",
+      "character": "Vidya Bagchi"
+    },
+    {
+      "name": "Parambrata Chatterjee",
+      "character": "Satyoki Rana Sinha"
+    },
+    {
+      "name": "Nawazuddin Siddiqui",
+      "character": "Mr. Khan"
+    }
+  ]
+},
+{
+  "id": "zindagi-na-milegi-dobara-2011",
+  "title": "Zindagi Na Milegi Dobara",
+  "year": 2011,
+  "industry": "bollywood",
+  "genres": [
+    "Comedy",
+    "Drama",
+    "Romance"
+  ],
+  "rating": 8.2,
+  "poster": "https://image.tmdb.org/t/p/w500/6y7x8w9v0u1t2s3r4q5p6o7n8.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/8n7o6p5q4r3s2t1u0v9w8x7y6.jpg",
+  "description": "Three friends embark on a bachelor trip road expedition through Spain that helps each of them confront deep-seated fears and find purpose.",
+  "director": "Zoya Akhtar",
+  "cast": [
+    {
+      "name": "Hrithik Roshan",
+      "character": "Kabir"
+    },
+    {
+      "name": "Farhan Akhtar",
+      "character": "Imran"
+    },
+    {
+      "name": "Abhay Deol",
+      "character": "Arjun"
+    },
+    {
+      "name": "Katrina Kaif",
+      "character": "Laila"
+    }
+  ]
+},
+{
+  "id": "udaan-2010",
+  "title": "Udaan",
+  "year": 2010,
+  "industry": "bollywood",
+  "genres": [
+    "Drama"
+  ],
+  "rating": 8.1,
+  "poster": "https://image.tmdb.org/t/p/w500/8t7s6r5q4p3o2n1m0l9k8j7i6.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/6i7j8k9l0m1n2o3p4q5r6s7t8.jpg",
+  "description": "Expelled from boarding school, a passionate aspiring teenage writer must endure an authoritarian father in an industrial steel town while defending his dream.",
+  "director": "Vikramaditya Motwane",
+  "cast": [
+    {
+      "name": "Rajat Barmecha",
+      "character": "Rohan"
+    },
+    {
+      "name": "Ronit Roy",
+      "character": "Bhairav Singh"
+    },
+    {
+      "name": "Ram Kapoor",
+      "character": "Jimmy Singh"
+    }
+  ]
+},
+{
+  "id": "taare-zameen-par-2007",
+  "title": "Taare Zameen Par (Like Stars on Earth)",
+  "year": 2007,
+  "industry": "bollywood",
+  "genres": [
+    "Drama"
+  ],
+  "rating": 8.4,
+  "poster": "https://image.tmdb.org/t/p/w500/7a8b9c0d1e2f3g4h5i6j7k8l0.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/0l8k7j6h5g4f3e2d1c0b9a8z6.jpg",
+  "description": "An eight-year-old boy struggles with dyslexia until an unconventional and caring art teacher uncovers his hidden creative genius.",
+  "director": "Aamir Khan",
+  "cast": [
+    {
+      "name": "Darsheel Safary",
+      "character": "Ishaan Awasthi"
+    },
+    {
+      "name": "Aamir Khan",
+      "character": "Ram Shankar Nikumbh"
+    }
+  ]
+},
+{
+  "id": "swades-2004",
+  "title": "Swades",
+  "year": 2004,
+  "industry": "bollywood",
+  "genres": [
+    "Drama"
+  ],
+  "rating": 8.2,
+  "poster": "https://image.tmdb.org/t/p/w500/3w4x5y6z7a8b9c0d1e2f3g4h5.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/5h4g3f2e1d0c9b8a7z6y5x4w3.jpg",
+  "description": "A successful NASA project manager returns to a rural Indian village to find his childhood nanny, rediscovering his roots and calling.",
+  "director": "Ashutosh Gowariker",
+  "cast": [
+    {
+      "name": "Shah Rukh Khan",
+      "character": "Mohan Bhargava"
+    },
+    {
+      "name": "Gayatri Joshi",
+      "character": "Gita"
+    },
+    {
+      "name": "Kishori Ballal",
+      "character": "Kaveri Amma"
+    }
+  ]
+},
+{
+  "id": "dheepan-2015",
+  "title": "Dheepan",
+  "year": 2015,
+  "industry": "french",
+  "genres": [
+    "Drama",
+    "Crime"
+  ],
+  "rating": 7.3,
+  "poster": "https://image.tmdb.org/t/p/w500/5k7l8m9n0o1p2q3r4s5t6u7v8.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/8v7u6t5s4r3q2p1o0n9m8l7k5.jpg",
+  "description": "To escape the civil war in Sri Lanka, a former Tamil Tiger warrior forms a makeshift family with two strangers to seek asylum in a Parisian housing estate.",
+  "director": "Jacques Audiard",
+  "cast": [
+    {
+      "name": "Antonythasan Jesuthasan",
+      "character": "Dheepan"
+    },
+    {
+      "name": "Kalieaswari Srinivasan",
+      "character": "Yalini"
+    },
+    {
+      "name": "Vincent Rottiers",
+      "character": "Brahim"
+    }
+  ]
+},
+{
+  "id": "mustang-2015",
+  "title": "Mustang",
+  "year": 2015,
+  "industry": "french",
+  "genres": [
+    "Drama"
+  ],
+  "rating": 7.7,
+  "poster": "https://image.tmdb.org/t/p/w500/1a2b3c4d5e6f7g8h9i0j1k2l4.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/4l2k1j0i9h8g7f6e5d4c3b2a1.jpg",
+  "description": "In a remote village, five free-spirited orphaned sisters fight against oppressive traditions when their home is turned into a prison of forced marriages.",
+  "director": "Deniz Gamze Ergüven",
+  "cast": [
+    {
+      "name": "Günes Sensoy",
+      "character": "Lale"
+    },
+    {
+      "name": "Doga Zeynep Doguslu",
+      "character": "Nur"
+    },
+    {
+      "name": "Elit Iscan",
+      "character": "Ece"
+    }
+  ]
+},
+{
+  "id": "mommy-2014",
+  "title": "Mommy",
+  "year": 2014,
+  "industry": "french",
+  "genres": [
+    "Drama"
+  ],
+  "rating": 8.2,
+  "poster": "https://image.tmdb.org/t/p/w500/7q8r9s0t1u2v3w4x5y6z7a8b9.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/9b8a7z6y5x4w3v2u1t0s9r8q7.jpg",
+  "description": "A widowed single mother finds an unexpected ally in a reclusive neighbor while raising her turbulent, ADHD-afflicted teenage son.",
+  "director": "Xavier Dolan",
+  "cast": [
+    {
+      "name": "Anne Dorval",
+      "character": "Diane Die Després"
+    },
+    {
+      "name": "Antoine Olivier Pilon",
+      "character": "Steve Després"
+    },
+    {
+      "name": "Suzanne Clément",
+      "character": "Kyla"
+    }
+  ]
+},
+{
+  "id": "two-days-one-night-2014",
+  "title": "Two Days, One Night (Deux jours, une nuit)",
+  "year": 2014,
+  "industry": "french",
+  "genres": [
+    "Drama"
+  ],
+  "rating": 7.4,
+  "poster": "https://image.tmdb.org/t/p/w500/3a2b1c0d9e8f7g6h5i4j3k2l1.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/1l2k3j4i5h6g7f8e9d0c1b2a3.jpg",
+  "description": "A young mother has only one weekend to convince her factory colleagues to forfeit their annual bonuses so she can keep her job.",
+  "director": "Jean-Pierre & Luc Dardenne",
+  "cast": [
+    {
+      "name": "Marion Cotillard",
+      "character": "Sandra Bya"
+    },
+    {
+      "name": "Fabrizio Rongione",
+      "character": "Manu"
+    },
+    {
+      "name": "Olivier Gourmet",
+      "character": "Jean-Marc"
+    }
+  ]
+},
+{
+  "id": "blue-is-the-warmest-color-2013",
+  "title": "Blue Is the Warmest Color (La Vie d Adèle)",
+  "year": 2013,
+  "industry": "french",
+  "genres": [
+    "Drama",
+    "Romance"
+  ],
+  "rating": 7.8,
+  "poster": "https://image.tmdb.org/t/p/w500/8b9c0d1e2f3g4h5i6j7k8l9m0.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/0m9l8k7j6h5g4f3e2d1c0b9a8.jpg",
+  "description": "Adèle life is turned upside down when she meets Emma, a charismatic blue-haired art student who helps her discover passion and desire.",
+  "director": "Abdellatif Kechiche",
+  "cast": [
+    {
+      "name": "Léa Seydoux",
+      "character": "Emma"
+    },
+    {
+      "name": "Adèle Exarchopoulos",
+      "character": "Adèle"
+    }
+  ]
+},
+{
+  "id": "the-past-2013",
+  "title": "The Past (Le Passé)",
+  "year": 2013,
+  "industry": "french",
+  "genres": [
+    "Drama",
+    "Mystery"
+  ],
+  "rating": 7.6,
+  "poster": "https://image.tmdb.org/t/p/w500/5m6n7o8p9q0r1s2t3u4v5w6x7.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/7x6w5v4u3t2s1r0q9p8o7n6m5.jpg",
+  "description": "An Iranian man returns to Paris after four years to finalize his divorce, discovering simmering family tensions and long-buried grievances.",
+  "director": "Asghar Farhadi",
+  "cast": [
+    {
+      "name": "Bérénice Bejo",
+      "character": "Marie Brisson"
+    },
+    {
+      "name": "Tahar Rahim",
+      "character": "Samir"
+    },
+    {
+      "name": "Ali Mosaffa",
+      "character": "Ahmad"
+    }
+  ]
+},
+{
+  "id": "rust-and-bone-2012",
+  "title": "Rust and Bone (De rouille et d os)",
+  "year": 2012,
+  "industry": "french",
+  "genres": [
+    "Drama",
+    "Romance"
+  ],
+  "rating": 7.5,
+  "poster": "https://image.tmdb.org/t/p/w500/9x8w7v6u5t4s3r2q1p0o9n8m7.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/7m8n9o0p1q2r3s4t5u6v7w8x9.jpg",
+  "description": "Put in charge of his young son, a drifting fighter forms a raw, life-affirming bond with an orca trainer surviving a catastrophic accident.",
+  "director": "Jacques Audiard",
+  "cast": [
+    {
+      "name": "Marion Cotillard",
+      "character": "Stéphanie"
+    },
+    {
+      "name": "Matthias Schoenaerts",
+      "character": "Ali"
+    }
+  ]
+},
+{
+  "id": "the-artist-2011",
+  "title": "The Artist",
+  "year": 2011,
+  "industry": "french",
+  "genres": [
+    "Comedy",
+    "Drama",
+    "Romance"
+  ],
+  "rating": 7.9,
+  "poster": "https://image.tmdb.org/t/p/w500/8t7s6r5q4p3o2n1m0l9k8j7i5.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/5i7j8k9l0m1n2o3p4q5r6s7t7.jpg",
+  "description": "Winner of 5 Academy Awards: An egocentric silent movie star meets a rising young dancer as the advent of talking pictures transforms cinema forever.",
+  "director": "Michel Hazanavicius",
+  "cast": [
+    {
+      "name": "Jean Dujardin",
+      "character": "George Valentin"
+    },
+    {
+      "name": "Bérénice Bejo",
+      "character": "Peppy Miller"
+    },
+    {
+      "name": "John Goodman",
+      "character": "Al Zimmer"
+    }
+  ]
+},
+{
+  "id": "a-prophet-2009",
+  "title": "A Prophet (Un Prophète)",
+  "year": 2009,
+  "industry": "french",
+  "genres": [
+    "Crime",
+    "Drama"
+  ],
+  "rating": 7.9,
+  "poster": "https://image.tmdb.org/t/p/w500/3w2v1u0t9s8r7q6p5o4n3m2l1.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/1l2m3n4o5p6q7r8s9t0u1v2w3.jpg",
+  "description": "Sentenced to six years in prison, a young illiterate Algerian corner kid navigates brutal internal politics to become a ruthless criminal mastermind.",
+  "director": "Jacques Audiard",
+  "cast": [
+    {
+      "name": "Tahar Rahim",
+      "character": "Malik El Djebena"
+    },
+    {
+      "name": "Niels Arestrup",
+      "character": "César Luciani"
+    }
+  ]
+},
+{
+  "id": "leon-the-professional-1994",
+  "title": "Léon: The Professional",
+  "year": 1994,
+  "industry": "french",
+  "genres": [
+    "Action",
+    "Crime",
+    "Drama"
+  ],
+  "rating": 8.5,
+  "poster": "https://image.tmdb.org/t/p/w500/yI6xZikWAc0DxZw4cuYEGzD9aSu.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/8Z8pePst42Jqdu2i8K4171wJv8a.jpg",
+  "description": "A 12-year-old girl who is reluctantly taken in by Léon, a professional assassin, after her family is murdered by an unhinged corrupt DEA agent.",
+  "director": "Luc Besson",
+  "cast": [
+    {
+      "name": "Jean Reno",
+      "character": "Léon"
+    },
+    {
+      "name": "Natalie Portman",
+      "character": "Mathilda"
+    },
+    {
+      "name": "Gary Oldman",
+      "character": "Norman Stansfield"
+    }
+  ]
+},
+{
+  "id": "the-fifth-element-1997",
+  "title": "The Fifth Element (Le Cinquième Élément)",
+  "year": 1997,
+  "industry": "french",
+  "genres": [
+    "Sci-Fi",
+    "Action",
+    "Adventure"
+  ],
+  "rating": 7.7,
+  "poster": "https://image.tmdb.org/t/p/w500/fPtlCO1Y35IINaqST0udDrPSpE.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/7k2a6uWw8c5P0k1l2m3n4o5p6q.jpg",
+  "description": "In the colorful 23rd century, a New York cab driver becomes the central figure in the search for a legendary cosmic weapon to save humanity.",
+  "director": "Luc Besson",
+  "cast": [
+    {
+      "name": "Bruce Willis",
+      "character": "Korben Dallas"
+    },
+    {
+      "name": "Milla Jovovich",
+      "character": "Leeloo"
+    },
+    {
+      "name": "Gary Oldman",
+      "character": "Jean-Baptiste Emanuel Zorg"
+    }
+  ]
+},
+{
+  "id": "three-colors-blue-1993",
+  "title": "Three Colors: Blue (Trois Couleurs: Bleu)",
+  "year": 1993,
+  "industry": "french",
+  "genres": [
+    "Drama",
+    "Mystery"
+  ],
+  "rating": 7.9,
+  "poster": "https://image.tmdb.org/t/p/w500/6y7x8w9v0u1t2s3r4q5p6o7n9.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/9n7o6p5q4r3s2t1u0v9w8x7y7.jpg",
+  "description": "Following the death of her composer husband and young daughter in a car accident, Julie attempts to sever all human ties and live in solitary liberty.",
+  "director": "Krzysztof Kieślowski",
+  "cast": [
+    {
+      "name": "Juliette Binoche",
+      "character": "Julie de Courcy"
+    },
+    {
+      "name": "Benoît Régent",
+      "character": "Olivier"
+    },
+    {
+      "name": "Florence Pernel",
+      "character": "Sandrine"
+    }
+  ]
+}
 ];
 
 export const recentlyWatched = MOVIES.filter((m) => m.watched).map((m) => ({

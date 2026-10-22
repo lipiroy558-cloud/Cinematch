@@ -102,12 +102,62 @@ export async function getAllMovies(req, res) {
   }
 
   const page = pageNumber(req.query.page)
-  const query = String(req.query.q || req.query.query || '').trim()
-  const genre = String(req.query.genre || '').trim()
-  const industry = String(req.query.industry || 'all').trim().toLowerCase()
+  let rawQuery = String(req.query.q || req.query.query || '').trim()
+  let genre = String(req.query.genre || '').trim()
+  let industry = String(req.query.industry || 'all').trim().toLowerCase()
   const minRating = Number(req.query.minRating || req.query.rating || 0)
   const sort = String(req.query.sort || 'popularity.desc').trim()
-  const year = /^\d{4}$/.test(String(req.query.year || '')) ? Number(req.query.year) : undefined
+  const rawYear = String(req.query.year || '').trim()
+
+  // Smart detect industry and genre inside search query (e.g. "french movie", "bollywood films", "french comedy")
+  const INDUSTRY_INTENTS = [
+    { key: 'bollywood', regex: /\b(bollywood|hindi|indian)\s*(movies?|films?|cinema)?\b/gi },
+    { key: 'french', regex: /\b(french)\s*(movies?|films?|cinema)?\b/gi },
+    { key: 'korean', regex: /\b(korean)\s*(movies?|films?|cinema)?\b/gi },
+    { key: 'japanese', regex: /\b(japanese|anime)\s*(movies?|films?|cinema)?\b/gi },
+    { key: 'spanish', regex: /\b(spanish)\s*(movies?|films?|cinema)?\b/gi },
+    { key: 'hollywood', regex: /\b(hollywood|american)\s*(movies?|films?|cinema)?\b/gi },
+  ]
+
+  let detectedIndustry = null
+  let query = rawQuery
+  if (query) {
+    for (const item of INDUSTRY_INTENTS) {
+      if (item.regex.test(query)) {
+        detectedIndustry = item.key
+        query = query.replace(item.regex, ' ').replace(/\s+/g, ' ').trim()
+        break
+      }
+    }
+  }
+
+  if (detectedIndustry && (!industry || industry === 'all')) {
+    industry = detectedIndustry
+  }
+
+  // Parse release year filter (exact year or range)
+  let yearFilter = null
+  if (rawYear && rawYear !== 'all') {
+    const yStr = rawYear.toLowerCase()
+    if (/^\d{4}$/.test(yStr)) {
+      const yr = Number(yStr)
+      yearFilter = { exact: yr, mongo: yr, check: (y) => y === yr }
+    } else if (yStr === 'before-2016' || yStr === 'lte-2015') {
+      yearFilter = { lteDate: '2015-12-31', mongo: { $lte: 2015 }, check: (y) => (y || 0) <= 2015 }
+    } else if (yStr === 'before-2015' || yStr === 'lte-2014') {
+      yearFilter = { lteDate: '2014-12-31', mongo: { $lte: 2014 }, check: (y) => (y || 0) <= 2014 }
+    } else if (yStr === '2010-2015') {
+      yearFilter = { gteDate: '2010-01-01', lteDate: '2015-12-31', mongo: { $gte: 2010, $lte: 2015 }, check: (y) => (y || 0) >= 2010 && (y || 0) <= 2015 }
+    } else if (yStr === '2000s') {
+      yearFilter = { gteDate: '2000-01-01', lteDate: '2009-12-31', mongo: { $gte: 2000, $lte: 2009 }, check: (y) => (y || 0) >= 2000 && (y || 0) <= 2009 }
+    } else if (yStr === '1990s') {
+      yearFilter = { gteDate: '1990-01-01', lteDate: '1999-12-31', mongo: { $gte: 1990, $lte: 1999 }, check: (y) => (y || 0) >= 1990 && (y || 0) <= 1999 }
+    } else if (yStr === '1980s') {
+      yearFilter = { gteDate: '1980-01-01', lteDate: '1989-12-31', mongo: { $gte: 1980, $lte: 1989 }, check: (y) => (y || 0) >= 1980 && (y || 0) <= 1989 }
+    } else if (yStr === 'classic-pre-1980' || yStr === 'before-1980') {
+      yearFilter = { lteDate: '1979-12-31', mongo: { $lte: 1979 }, check: (y) => (y || 0) <= 1979 }
+    }
+  }
 
   let sortBy = 'popularity.desc'
   let voteCountGte = minRating > 0 ? 30 : undefined
@@ -130,8 +180,8 @@ export async function getAllMovies(req, res) {
       if (industry && industry !== 'all') {
         mongoQuery.industry = industry
       }
-      if (year) {
-        mongoQuery.year = year
+      if (yearFilter?.mongo) {
+        mongoQuery.year = yearFilter.mongo
       }
       if (minRating > 0) {
         mongoQuery.rating = { $gte: minRating }
@@ -165,8 +215,8 @@ export async function getAllMovies(req, res) {
       const q = query.toLowerCase()
       list = list.filter((m) => m.title?.toLowerCase().includes(q))
     }
-    if (year) {
-      list = list.filter((m) => m.year === year)
+    if (yearFilter?.check) {
+      list = list.filter((m) => yearFilter.check(m.year))
     }
     if (minRating > 0) {
       list = list.filter((m) => (m.rating || 0) >= minRating)
@@ -193,15 +243,36 @@ export async function getAllMovies(req, res) {
   }
 
   const result = await tmdbOrFallback(async () => {
+    // If a title query is still present after removing industry intents:
     if (query) {
-      const searchRes = await getPaginatedMovies('/search/movie', {
+      const searchParams = {
         page,
         query,
-        primary_release_year: year,
         include_adult: false,
-      })
+      }
+      if (yearFilter?.exact) {
+        searchParams.primary_release_year = yearFilter.exact
+      } else if (yearFilter?.exactYear) {
+        searchParams.primary_release_year = yearFilter.exactYear
+      }
 
+      const searchRes = await getPaginatedMovies('/search/movie', searchParams)
       let list = searchRes.movies || []
+
+      // If user had an industry filter or detected one, prioritize those results
+      if (industry && industry !== 'all' && list.length > 0) {
+        const indConfig = INDUSTRY_MAP[industry]
+        if (indConfig?.with_original_language) {
+          const allowedLangs = indConfig.with_original_language.split('|')
+          const filtered = list.filter((m) => allowedLangs.includes(m.originalLanguage || ''))
+          if (filtered.length > 0) list = filtered
+        }
+      }
+
+      if (yearFilter?.check) {
+        list = list.filter((m) => yearFilter.check(m.year))
+      }
+
       if (minRating > 0) {
         list = list.filter((m) => (m.rating || 0) >= minRating)
       }
@@ -221,14 +292,17 @@ export async function getAllMovies(req, res) {
         list.sort((a, b) => a.title.localeCompare(b.title))
       }
 
-      return {
-        movies: list,
-        page: searchRes.page,
-        totalPages: searchRes.totalPages,
-        totalResults: searchRes.totalResults,
+      if (list.length > 0) {
+        return {
+          movies: list,
+          page: searchRes.page,
+          totalPages: searchRes.totalPages,
+          totalResults: list.length,
+        }
       }
     }
 
+    // Discover movies by industry, year (exact or range), genre, rating
     const genreId = await resolveGenreId(genre)
     const industryParams = INDUSTRY_MAP[industry] || {}
     const discoverParams = {
@@ -237,7 +311,16 @@ export async function getAllMovies(req, res) {
       include_adult: false,
       ...industryParams,
     }
-    if (year) discoverParams.primary_release_year = year
+
+    if (yearFilter?.exact) {
+      discoverParams.primary_release_year = yearFilter.exact
+    }
+    if (yearFilter?.gteDate) {
+      discoverParams['primary_release_date.gte'] = yearFilter.gteDate
+    }
+    if (yearFilter?.lteDate) {
+      discoverParams['primary_release_date.lte'] = yearFilter.lteDate
+    }
     if (genreId) discoverParams.with_genres = genreId
     if (minRating > 0) discoverParams['vote_average.gte'] = minRating
     if (voteCountGte) discoverParams['vote_count.gte'] = voteCountGte
