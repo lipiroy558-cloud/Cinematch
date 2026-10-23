@@ -481,3 +481,60 @@ export const unlikeMovie = (movieId) => request(`/users/me/like/${encodeURICompo
 export const register = (payload) => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) })
 export const login = (payload) => request('/auth/login', { method: 'POST', body: JSON.stringify(payload) })
 export const fetchMe = () => request('/auth/me')
+
+export async function fetchSimilarMovies(movie, limit = 10) {
+  if (!movie) return []
+  const currentId = String(movie.id || '')
+  const currentTitle = (movie.title || '').toLowerCase()
+  const genres = (movie.genres || []).map((g) => String(g).toLowerCase())
+  const director = (movie.director || '').toLowerCase()
+  const industry = (movie.industry || '').toLowerCase()
+
+  // 1. Try TMDB recommendations if it is a TMDB movie
+  const rawId = currentId.replace(/^tmdb-/, '')
+  if (/^\d+$/.test(rawId)) {
+    try {
+      const res = await fetch(
+        `https://api.themoviedb.org/3/movie/${rawId}/recommendations?api_key=${TMDB_CLIENT_KEY}&page=1`
+      )
+      if (res.ok) {
+        const data = await res.json()
+        const results = (data.results || []).slice(0, limit)
+        if (results.length > 0) {
+          return results.map((item) => ({
+            id: `tmdb-${item.id}`,
+            title: item.title,
+            year: item.release_date ? Number(item.release_date.substring(0, 4)) : null,
+            rating: item.vote_average ? Number(item.vote_average.toFixed(1)) : 0,
+            poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '/movie-fallback.svg',
+            backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}` : '',
+            description: item.overview || '',
+            genres: [],
+          }))
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Catalog similarity algorithm matching genres, director, and industry
+  const scored = MOVIES
+    .filter((m) => String(m.id) !== currentId && (m.title || '').toLowerCase() !== currentTitle)
+    .map((candidate) => {
+      let score = 0
+      const candidateGenres = (candidate.genres || []).map((g) => String(g).toLowerCase())
+      for (const g of genres) {
+        if (candidateGenres.includes(g)) score += 4
+      }
+      if (director && candidate.director && candidate.director.toLowerCase() === director) {
+        score += 6
+      }
+      if (industry && candidate.industry && candidate.industry.toLowerCase() === industry) {
+        score += 2
+      }
+      score += (candidate.rating || 0) * 0.5
+      return { candidate, score }
+    })
+    .sort((a, b) => b.score - a.score)
+
+  return scored.slice(0, limit).map((s) => s.candidate)
+}

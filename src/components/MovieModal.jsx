@@ -1,13 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLibrary } from '../context/LibraryContext'
-import { fetchMovieById } from '../services/api'
+import { fetchMovieById, fetchSimilarMovies } from '../services/api'
 
 export default function MovieModal({ movie, onClose, onSearchPerson }) {
   const { isLiked, isWatchlisted, isWatched, toggleLike, toggleWatchlist, toggleWatched } = useLibrary()
+  
+  const [activeMovie, setActiveMovie] = useState(movie)
   const [details, setDetails] = useState(movie)
+  const [navHistory, setNavHistory] = useState([])
   const [loadingDetails, setLoadingDetails] = useState(false)
   const [showCast, setShowCast] = useState(false)
   const [isPlayingTrailer, setIsPlayingTrailer] = useState(false)
+  
+  const [similarMovies, setSimilarMovies] = useState([])
+  const [loadingSimilar, setLoadingSimilar] = useState(false)
+  
+  const modalBodyRef = useRef(null)
+  const similarRowRef = useRef(null)
 
   useEffect(() => {
     const handleKey = (event) => {
@@ -17,15 +26,22 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [onClose])
 
+  // Reset when primary movie prop changes from outside
   useEffect(() => {
-    setDetails(movie)
+    setActiveMovie(movie)
+    setNavHistory([])
+  }, [movie])
+
+  // Load details whenever activeMovie changes
+  useEffect(() => {
+    if (!activeMovie) return
+    setDetails(activeMovie)
     setShowCast(false)
     setIsPlayingTrailer(false)
-    if (!movie) return
 
     let active = true
     setLoadingDetails(true)
-    fetchMovieById(movie.id)
+    fetchMovieById(activeMovie.id)
       .then((fullData) => {
         if (active && fullData) {
           setDetails((prev) => ({ ...prev, ...fullData }))
@@ -41,13 +57,37 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
     return () => {
       active = false
     }
-  }, [movie])
+  }, [activeMovie])
 
-  if (!movie) return null
-  const current = details || movie
-  const liked = isLiked(current.id || movie.id)
-  const watchlisted = isWatchlisted(current.id || movie.id)
-  const watched = isWatched(current.id || movie.id)
+  // Fetch similar movies whenever activeMovie or details update
+  useEffect(() => {
+    if (!activeMovie) {
+      setSimilarMovies([])
+      return
+    }
+    let active = true
+    setLoadingSimilar(true)
+    fetchSimilarMovies(details || activeMovie)
+      .then((list) => {
+        if (active) setSimilarMovies(list || [])
+      })
+      .catch(() => {
+        if (active) setSimilarMovies([])
+      })
+      .finally(() => {
+        if (active) setLoadingSimilar(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [activeMovie?.id, details?.title])
+
+  if (!movie || !activeMovie) return null
+  const current = details || activeMovie
+  const liked = isLiked(current.id || activeMovie.id)
+  const watchlisted = isWatchlisted(current.id || activeMovie.id)
+  const watched = isWatched(current.id || activeMovie.id)
   const castList = current.cast || []
   const hasCast = castList.length > 0 || loadingDetails
   const trailerKey = current.trailerKey
@@ -56,12 +96,42 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
   const rentList = providers.rent || []
   const hasProviders = streamList.length > 0 || rentList.length > 0
 
+  const handleSelectSimilar = (item) => {
+    if (!item || String(item.id) === String(current.id)) return
+    setNavHistory((prev) => [...prev, current])
+    setActiveMovie(item)
+    setIsPlayingTrailer(false)
+    setShowCast(false)
+    if (modalBodyRef.current) {
+      modalBodyRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const handleGoBack = () => {
+    if (navHistory.length === 0) return
+    const prevMovie = navHistory[navHistory.length - 1]
+    setNavHistory((prev) => prev.slice(0, -1))
+    setActiveMovie(prevMovie)
+    setIsPlayingTrailer(false)
+    setShowCast(false)
+    if (modalBodyRef.current) {
+      modalBodyRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const scrollSimilar = (direction) => {
+    if (similarRowRef.current) {
+      similarRowRef.current.scrollBy({ left: direction * 240, behavior: 'smooth' })
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/80 p-0 sm:p-6 backdrop-blur-sm transition-opacity"
       onClick={onClose}
     >
       <article
+        ref={modalBodyRef}
         className="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-[1.5rem] sm:rounded-[1.5rem] bg-[#151820] border border-white/10 shadow-2xl scrollbar-thin scrollbar-thumb-white/10"
         onClick={(event) => event.stopPropagation()}
       >
@@ -97,7 +167,7 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#151820] via-[#151820]/40 to-transparent" />
 
-              {/* Watch Trailer Button Overlay */}
+              {/* Watch Trailer Transparent Button Overlay */}
               {trailerKey ? (
                 <button
                   type="button"
@@ -123,6 +193,22 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                 </a>
               )}
 
+              {/* Navigation History Breadcrumb */}
+              {navHistory.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleGoBack}
+                  className="absolute top-4 left-4 h-9 px-3 rounded-full border border-white/20 bg-black/70 text-white backdrop-blur-md transition hover:bg-black flex items-center gap-1.5 z-10 active:scale-90 text-xs font-semibold shadow-lg"
+                  title={`Back to ${navHistory[navHistory.length - 1].title}`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  <span className="truncate max-w-[120px] sm:max-w-[160px]">
+                    {navHistory[navHistory.length - 1].title}
+                  </span>
+                </button>
+              )}
+
+              {/* Close Button */}
               <button
                 type="button"
                 aria-label="Close"
@@ -207,7 +293,7 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
             <div className="mt-5 flex flex-wrap items-center gap-2.5">
               <button
                 type="button"
-                onClick={() => toggleWatchlist(current.id || movie.id)}
+                onClick={() => toggleWatchlist(current.id || activeMovie.id)}
                 className="flex-1 min-w-[130px] rounded-xl bg-primary-container px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5 shadow-md active:scale-95"
               >
                 <span className="material-symbols-outlined text-[18px]">
@@ -217,7 +303,7 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
               </button>
               <button
                 type="button"
-                onClick={() => toggleWatched(current.id || movie.id)}
+                onClick={() => toggleWatched(current.id || activeMovie.id)}
                 className={`px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm ${
                   watched
                     ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
@@ -250,7 +336,7 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
               <button
                 type="button"
                 aria-label={liked ? 'Unlike' : 'Like'}
-                onClick={() => toggleLike(current.id || movie.id)}
+                onClick={() => toggleLike(current.id || activeMovie.id)}
                 className={`h-11 w-11 rounded-xl border transition flex items-center justify-center shrink-0 active:scale-95 ${
                   liked
                     ? 'border-primary-container bg-primary-container text-white shadow-md'
@@ -277,25 +363,21 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                       className="text-[10px] text-white/50 hover:text-white transition flex items-center gap-0.5"
                     >
                       <span>Powered by JustWatch</span>
-                      <span className="material-symbols-outlined text-[11px]">open_in_new</span>
+                      <span className="material-symbols-outlined text-[12px]">open_in_new</span>
                     </a>
                   )}
                 </div>
 
                 {streamList.length > 0 && (
-                  <div className="mb-2">
+                  <div>
                     <span className="text-[11px] text-white/70 block mb-1 font-medium">Stream on:</span>
                     <div className="flex flex-wrap items-center gap-2">
                       {streamList.map((p) => (
                         <div
                           key={p.name}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-high border border-white/10 text-white text-xs font-semibold shadow-sm"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-high border border-white/10 text-white/90 text-xs font-medium"
                         >
-                          {p.logo ? (
-                            <img src={p.logo} alt={p.name} className="w-4 h-4 rounded object-cover" />
-                          ) : (
-                            <span className="material-symbols-outlined text-[14px] text-primary">play_arrow</span>
-                          )}
+                          {p.logo && <img src={p.logo} alt={p.name} className="w-4 h-4 rounded object-cover" />}
                           <span>{p.name}</span>
                         </div>
                       ))}
@@ -419,6 +501,113 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Interactive "More Like This" Similar Movies Rail */}
+            {(similarMovies.length > 0 || loadingSimilar) && (
+              <div className="mt-5 pt-4 border-t border-white/[0.08]">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      auto_awesome
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-[.22em] text-secondary">
+                      More Like This
+                    </span>
+                    {similarMovies.length > 0 && (
+                      <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/60">
+                        {similarMovies.length}
+                      </span>
+                    )}
+                  </div>
+
+                  {similarMovies.length > 3 && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => scrollSimilar(-1)}
+                        className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 active:scale-90"
+                        title="Scroll Left"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollSimilar(1)}
+                        className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 active:scale-90"
+                        title="Scroll Right"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  ref={similarRowRef}
+                  className="flex items-stretch gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 scroll-smooth snap-x snap-mandatory"
+                >
+                  {loadingSimilar && similarMovies.length === 0 ? (
+                    [1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className="w-28 sm:w-32 shrink-0 aspect-[2/3] rounded-xl bg-white/[0.03] animate-pulse border border-white/5"
+                      />
+                    ))
+                  ) : (
+                    similarMovies.map((similar) => (
+                      <div
+                        key={similar.id}
+                        onClick={() => handleSelectSimilar(similar)}
+                        className="group/card w-28 sm:w-32 shrink-0 snap-start flex flex-col cursor-pointer transition-transform active:scale-95"
+                        title={`View ${similar.title}`}
+                      >
+                        <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-surface-container-high border border-white/10 group-hover/card:border-primary-container/60 shadow-md transition-all">
+                          <img
+                            src={similar.poster || '/movie-fallback.svg'}
+                            alt={similar.title}
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.src = '/movie-fallback.svg'
+                            }}
+                            className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+
+                          {/* Hover Play icon */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
+                            <div className="w-8 h-8 rounded-full bg-black/50 text-white backdrop-blur-md flex items-center justify-center border border-white/40 shadow-lg scale-90 group-hover/card:scale-100 transition-transform">
+                              <span className="material-symbols-outlined text-[18px] ml-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                play_arrow
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Rating badge */}
+                          {similar.rating > 0 && (
+                            <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-md flex items-center gap-0.5 shadow-sm text-[10px] font-bold text-secondary">
+                              <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                star
+                              </span>
+                              <span>{Number(similar.rating).toFixed(1)}</span>
+                            </div>
+                          )}
+
+                          {/* Title overlay */}
+                          <div className="absolute bottom-1.5 left-1.5 right-1.5">
+                            <p className="text-[11px] font-semibold text-white truncate leading-tight group-hover/card:text-primary-container transition-colors">
+                              {similar.title}
+                            </p>
+                            <p className="text-[9px] text-white/60">
+                              {similar.year || ''}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             )}
           </div>
