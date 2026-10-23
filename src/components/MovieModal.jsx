@@ -102,9 +102,9 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                 <button
                   type="button"
                   onClick={() => setIsPlayingTrailer(true)}
-                  className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2.5 px-6 py-3 rounded-full bg-white hover:bg-neutral-100 text-black font-extrabold text-xs sm:text-sm tracking-wide shadow-[0_12px_36px_rgba(0,0,0,0.85)] border border-white/60 hover:scale-105 active:scale-95 transition-all group cursor-pointer"
+                  className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2.5 px-6 py-3 rounded-full bg-black/45 hover:bg-black/65 text-white font-bold text-xs sm:text-sm tracking-wide shadow-[0_8px_32px_rgba(0,0,0,0.8)] backdrop-blur-xl border border-white/30 hover:border-white/60 hover:scale-105 active:scale-95 transition-all group cursor-pointer"
                 >
-                  <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                  <div className="w-7 h-7 rounded-full bg-white/20 text-white border border-white/30 flex items-center justify-center group-hover:bg-white group-hover:text-black group-hover:scale-110 transition-all shadow-sm">
                     <span className="material-symbols-outlined text-[15px] ml-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
                       play_arrow
                     </span>

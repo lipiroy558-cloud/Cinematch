@@ -298,7 +298,7 @@ export default function SurpriseMeModal({ isOpen, onClose, onSelectMovie }) {
               <button
                 type="button"
                 onClick={() => setIsPlayingTrailer(true)}
-                className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-neutral-100 text-black font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs flex items-center gap-1.5 backdrop-blur-md shadow-md active:scale-95 transition-all"
                 title="Watch Trailer"
               >
                 <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
