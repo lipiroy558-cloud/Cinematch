@@ -1,9 +1,8 @@
 import { profile } from '../data/profile'
 
 // 4-column quick-stats bar (Watched / Rated / Watchlist / AI Match).
-// The "Watchlist" figure reflects the user's real, persisted watchlist
-// count when provided; every other stat stays mock data for now.
-export default function QuickStats({ watchlistCount, likedCount }) {
+// The "Watchlist" and "Watched" figures reflect the user's real, persisted library data.
+export default function QuickStats({ watchlistCount, likedCount, watchedCount }) {
   return (
     <section className="px-4 sm:px-8 lg:px-12 mb-8">
       <div className="cinema-panel grid grid-cols-4 gap-2 p-4">
@@ -13,6 +12,8 @@ export default function QuickStats({ watchlistCount, likedCount }) {
             value = String(watchlistCount)
           } else if (stat.label === 'Rated' && typeof likedCount === 'number' && likedCount > 0) {
             value = String(likedCount)
+          } else if (stat.label === 'Watched' && typeof watchedCount === 'number') {
+            value = String(watchedCount)
           }
           return (
             <div key={stat.label} className="flex flex-col items-center text-center py-1">

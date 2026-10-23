@@ -3,12 +3,21 @@ import * as api from '../services/api'
 
 const LibraryContext = createContext(null)
 const TOKEN_KEY = 'cinematch:token'
+const WATCHED_STORAGE_KEY = 'cinematch:watched'
 
 export function LibraryProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY))
   const [user, setUser] = useState(null)
   const [watchlistIds, setWatchlistIds] = useState([])
   const [likedIds, setLikedIds] = useState([])
+  const [watchedIds, setWatchedIds] = useState(() => {
+    try {
+      const raw = localStorage.getItem(WATCHED_STORAGE_KEY)
+      return raw ? JSON.parse(raw) : []
+    } catch {
+      return []
+    }
+  })
   const [libraryLoading, setLibraryLoading] = useState(Boolean(token))
   const [libraryError, setLibraryError] = useState(null)
   const [authPrompt, setAuthPrompt] = useState(null)
@@ -108,6 +117,83 @@ export function LibraryProvider({ children }) {
     [token, likedIds, triggerAuthPrompt]
   )
 
+  // Save watchedIds to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(WATCHED_STORAGE_KEY, JSON.stringify(watchedIds))
+    } catch (err) {
+      console.warn('Failed saving watchedIds to localStorage', err)
+    }
+  }, [watchedIds])
+
+  const toggleWatched = useCallback(
+    (id, shouldRemoveFromWatchlist = false) => {
+      if (id == null) return
+      const normId = id
+      setWatchedIds((prev) => {
+        const exists = prev.some((x) => String(x) === String(normId))
+        return exists ? prev.filter((x) => String(x) !== String(normId)) : [normId, ...prev]
+      })
+      if (shouldRemoveFromWatchlist) {
+        setWatchlistIds((prev) => prev.filter((x) => String(x) !== String(normId)))
+        if (token) {
+          api.removeFromWatchlist(normId).catch(() => {})
+        }
+      }
+    },
+    [token]
+  )
+
+  const moveToWatched = useCallback(
+    async (id) => {
+      if (id == null) return
+      const normId = id
+      setWatchedIds((prev) => {
+        if (prev.some((x) => String(x) === String(normId))) return prev
+        return [normId, ...prev]
+      })
+      if (watchlistIds.some((x) => String(x) === String(normId))) {
+        if (token) {
+          try {
+            const updated = await api.removeFromWatchlist(normId)
+            setWatchlistIds(updated)
+          } catch {
+            setWatchlistIds((prev) => prev.filter((x) => String(x) !== String(normId)))
+          }
+        } else {
+          setWatchlistIds((prev) => prev.filter((x) => String(x) !== String(normId)))
+        }
+      }
+    },
+    [token, watchlistIds]
+  )
+
+  const moveToWatchlist = useCallback(
+    async (id) => {
+      if (id == null) return
+      const normId = id
+      setWatchedIds((prev) => prev.filter((x) => String(x) !== String(normId)))
+      if (!watchlistIds.some((x) => String(x) === String(normId))) {
+        if (token) {
+          try {
+            const updated = await api.addToWatchlist(normId)
+            setWatchlistIds(updated)
+          } catch {
+            setWatchlistIds((prev) => [normId, ...prev])
+          }
+        } else {
+          setWatchlistIds((prev) => [normId, ...prev])
+        }
+      }
+    },
+    [token, watchlistIds]
+  )
+
+  const isWatched = useCallback(
+    (id) => watchedIds.some((x) => String(x) === String(id)),
+    [watchedIds]
+  )
+
   const value = useMemo(
     () => ({
       user,
@@ -128,10 +214,15 @@ export function LibraryProvider({ children }) {
       logout,
       watchlistIds,
       likedIds,
+      watchedIds,
       toggleWatchlist,
       toggleLike,
+      toggleWatched,
+      moveToWatched,
+      moveToWatchlist,
       isWatchlisted: (id) => watchlistIds.includes(id),
       isLiked: (id) => likedIds.includes(id),
+      isWatched,
     }),
     [
       user,
@@ -150,8 +241,13 @@ export function LibraryProvider({ children }) {
       logout,
       watchlistIds,
       likedIds,
+      watchedIds,
       toggleWatchlist,
       toggleLike,
+      toggleWatched,
+      moveToWatched,
+      moveToWatchlist,
+      isWatched,
     ]
   )
 

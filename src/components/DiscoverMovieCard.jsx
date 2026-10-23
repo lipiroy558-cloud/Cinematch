@@ -1,12 +1,6 @@
 import { useLibrary } from '../context/LibraryContext'
 
-// Interactive poster card used everywhere EXCEPT the Profile screen's
-// "Recently Watched" rail (which keeps using the original MovieCard so
-// that screen stays pixel-identical to the Stitch design).
-//
-// Adds quick-action like/watchlist buttons and opens the detail modal
-// on click, while keeping the same visual language (rounded-xl poster,
-// gradient overlay, glass rating pill) as the rest of the Stitch UI.
+// Interactive poster card used across Discover, Watchlist & Diary, and Rails.
 function formatAttribution(reason) {
   if (!reason) return null
   const cleaned = String(reason).trim()
@@ -24,9 +18,10 @@ function formatAttribution(reason) {
 }
 
 export default function DiscoverMovieCard({ movie, onSelect }) {
-  const { isLiked, isWatchlisted, toggleLike, toggleWatchlist } = useLibrary()
+  const { isLiked, isWatchlisted, isWatched, toggleLike, toggleWatchlist, toggleWatched } = useLibrary()
   const liked = isLiked(movie.id)
   const watchlisted = isWatchlisted(movie.id)
+  const watched = isWatched(movie.id)
   const attribution = formatAttribution(movie.reason)
 
   return (
@@ -50,24 +45,33 @@ export default function DiscoverMovieCard({ movie, onSelect }) {
           </div>
         </div>
 
-        {/* Rating badge */}
-        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-lg bg-surface-container-lowest/90 backdrop-blur-md flex items-center gap-1 shadow-sm">
-          <span
-            className="material-symbols-outlined text-[14px] text-secondary"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            star
-          </span>
-          <span className="font-title-sm text-label-caps text-secondary font-bold">
-            {(movie.rating || 0).toFixed(1)}
-          </span>
+        {/* Rating and Watched badges */}
+        <div className="absolute top-2 right-2 flex flex-col items-end gap-1 pointer-events-none">
+          <div className="px-2 py-0.5 rounded-lg bg-surface-container-lowest/90 backdrop-blur-md flex items-center gap-1 shadow-sm">
+            <span
+              className="material-symbols-outlined text-[14px] text-secondary"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              star
+            </span>
+            <span className="font-title-sm text-label-caps text-secondary font-bold">
+              {(movie.rating || 0).toFixed(1)}
+            </span>
+          </div>
+          {watched && (
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/90 text-white font-bold text-[9px] uppercase tracking-wider backdrop-blur-md shadow-sm flex items-center gap-0.5">
+              <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+              Watched
+            </span>
+          )}
         </div>
 
-        {/* Quick actions: watchlist + like */}
-        <div className="movie-card-actions absolute top-2 left-2 flex flex-col gap-1.5">
+        {/* Quick actions: watchlist + watched + like */}
+        <div className="movie-card-actions absolute top-2 left-2 flex flex-col gap-1.5 z-10">
           <button
             type="button"
             aria-label={watchlisted ? 'Remove from Watchlist' : 'Add to Watchlist'}
+            title={watchlisted ? 'In Watchlist' : 'Add to Watchlist'}
             onClick={(e) => {
               e.stopPropagation()
               toggleWatchlist(movie.id)
@@ -87,7 +91,29 @@ export default function DiscoverMovieCard({ movie, onSelect }) {
           </button>
           <button
             type="button"
+            aria-label={watched ? 'Remove from Watched Diary' : 'Mark as Watched'}
+            title={watched ? 'Watched (Logged in Diary)' : 'Mark as Watched'}
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleWatched(movie.id)
+            }}
+            className={`w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-md shadow-sm transition-all active:scale-90 ${
+              watched
+                ? 'bg-emerald-500 text-white shadow-emerald-500/30'
+                : 'bg-surface-container-lowest/80 text-on-surface hover:text-emerald-400'
+            }`}
+          >
+            <span
+              className="material-symbols-outlined text-[15px]"
+              style={watched ? { fontVariationSettings: "'FILL' 1" } : undefined}
+            >
+              check_circle
+            </span>
+          </button>
+          <button
+            type="button"
             aria-label={liked ? 'Unlike' : 'Like'}
+            title={liked ? 'Liked' : 'Like'}
             onClick={(e) => {
               e.stopPropagation()
               toggleLike(movie.id)

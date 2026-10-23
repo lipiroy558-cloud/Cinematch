@@ -3,7 +3,7 @@ import { useLibrary } from '../context/LibraryContext'
 import { fetchMovieById } from '../services/api'
 
 export default function MovieModal({ movie, onClose, onSearchPerson }) {
-  const { isLiked, isWatchlisted, toggleLike, toggleWatchlist } = useLibrary()
+  const { isLiked, isWatchlisted, isWatched, toggleLike, toggleWatchlist, toggleWatched } = useLibrary()
   const [details, setDetails] = useState(movie)
   const [loadingDetails, setLoadingDetails] = useState(false)
   const [showCast, setShowCast] = useState(false)
@@ -47,6 +47,7 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
   const current = details || movie
   const liked = isLiked(current.id || movie.id)
   const watchlisted = isWatchlisted(current.id || movie.id)
+  const watched = isWatched(current.id || movie.id)
   const castList = current.cast || []
   const hasCast = castList.length > 0 || loadingDetails
   const trailerKey = current.trailerKey
@@ -202,17 +203,35 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
               {current.description || 'No overview is available for this movie yet.'}
             </p>
 
-            {/* Actions: Watchlist, Like & Trailer */}
-            <div className="mt-5 flex items-center gap-2.5">
+            {/* Actions: Watchlist, Watched, Trailer & Like */}
+            <div className="mt-5 flex flex-wrap items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => toggleWatchlist(current.id || movie.id)}
-                className="flex-1 rounded-xl bg-primary-container px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5 shadow-md active:scale-95"
+                className="flex-1 min-w-[130px] rounded-xl bg-primary-container px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5 shadow-md active:scale-95"
               >
                 <span className="material-symbols-outlined text-[18px]">
                   {watchlisted ? 'bookmark' : 'bookmark_add'}
                 </span>
                 {watchlisted ? 'In watchlist' : 'Add to watchlist'}
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleWatched(current.id || movie.id)}
+                className={`px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm ${
+                  watched
+                    ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                    : 'border-white/15 bg-white/10 hover:bg-white/20 text-white'
+                }`}
+                title={watched ? 'Marked as watched' : 'Mark as watched'}
+              >
+                <span
+                  className={`material-symbols-outlined text-[18px] ${watched ? 'text-emerald-400' : 'text-white/80'}`}
+                  style={watched ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                >
+                  {watched ? 'check_circle' : 'done'}
+                </span>
+                <span>{watched ? 'Watched' : 'Mark Watched'}</span>
               </button>
               {trailerKey && (
                 <button

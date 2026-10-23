@@ -33,6 +33,7 @@ function AppContent() {
   const {
     watchlistIds,
     likedIds,
+    watchedIds,
     authPrompt,
     dismissAuthPrompt,
     authModalOpen,
@@ -107,7 +108,7 @@ function AppContent() {
         {view === 'profile' && (
           <div className="page-shell flex flex-col w-full pb-10">
             <ProfileHeader />
-            <QuickStats watchlistCount={watchlistIds.length} likedCount={likedIds.length} />
+            <QuickStats watchlistCount={watchlistIds.length} likedCount={likedIds.length} watchedCount={watchedIds.length} />
             <TasteDNA />
             <MovieSection
               icon="history_toggle_off"
