@@ -16,7 +16,6 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
   const [loadingSimilar, setLoadingSimilar] = useState(false)
   
   const modalBodyRef = useRef(null)
-  const similarRowRef = useRef(null)
 
   useEffect(() => {
     const handleKey = (event) => {
@@ -116,12 +115,6 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
     setShowCast(false)
     if (modalBodyRef.current) {
       modalBodyRef.current.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
-
-  const scrollSimilar = (direction) => {
-    if (similarRowRef.current) {
-      similarRowRef.current.scrollBy({ left: direction * 240, behavior: 'smooth' })
     }
   }
 
@@ -504,63 +497,37 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
               </div>
             )}
 
-            {/* Interactive "More Like This" Similar Movies Rail */}
+            {/* "More Like This" Similar Movies (Static Grid - Visible in One Instance, No Sliding) */}
             {(similarMovies.length > 0 || loadingSimilar) && (
               <div className="mt-5 pt-4 border-t border-white/[0.08]">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[17px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      auto_awesome
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-[17px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    auto_awesome
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[.22em] text-secondary">
+                    More Like This
+                  </span>
+                  {similarMovies.length > 0 && (
+                    <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/60">
+                      {Math.min(similarMovies.length, 4)}
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-[.22em] text-secondary">
-                      More Like This
-                    </span>
-                    {similarMovies.length > 0 && (
-                      <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/60">
-                        {similarMovies.length}
-                      </span>
-                    )}
-                  </div>
-
-                  {similarMovies.length > 3 && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => scrollSimilar(-1)}
-                        className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 active:scale-90"
-                        title="Scroll Left"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">chevron_left</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => scrollSimilar(1)}
-                        className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 active:scale-90"
-                        title="Scroll Right"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-                      </button>
-                    </div>
                   )}
                 </div>
 
-                <div
-                  ref={similarRowRef}
-                  className="flex items-stretch gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 scroll-smooth snap-x snap-mandatory"
-                >
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                   {loadingSimilar && similarMovies.length === 0 ? (
                     [1, 2, 3, 4].map((i) => (
                       <div
                         key={i}
-                        className="w-28 sm:w-32 shrink-0 aspect-[2/3] rounded-xl bg-white/[0.03] animate-pulse border border-white/5"
+                        className="w-full aspect-[2/3] rounded-xl bg-white/[0.03] animate-pulse border border-white/5"
                       />
                     ))
                   ) : (
-                    similarMovies.map((similar) => (
+                    similarMovies.slice(0, 4).map((similar) => (
                       <div
                         key={similar.id}
                         onClick={() => handleSelectSimilar(similar)}
-                        className="group/card w-28 sm:w-32 shrink-0 snap-start flex flex-col cursor-pointer transition-transform active:scale-95"
+                        className="group/card w-full flex flex-col cursor-pointer transition-transform active:scale-95"
                         title={`View ${similar.title}`}
                       >
                         <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-surface-container-high border border-white/10 group-hover/card:border-primary-container/60 shadow-md transition-all">
