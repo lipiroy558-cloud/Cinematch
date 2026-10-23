@@ -22,8 +22,10 @@ export default function MovieCard({ movie, onSelect }) {
 
         {/* Hover Play Badge */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <div className="w-9 h-9 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-xl backdrop-blur-md scale-90 group-hover:scale-100 transition-transform">
-            <span className="material-symbols-outlined text-[20px]">play_arrow</span>
+          <div className="w-10 h-10 rounded-full bg-white/95 text-black flex items-center justify-center shadow-[0_6px_20px_rgba(0,0,0,0.8)] backdrop-blur-md scale-90 group-hover:scale-100 transition-transform border border-white/50">
+            <span className="material-symbols-outlined text-[20px] ml-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
+              play_arrow
+            </span>
           </div>
         </div>
 

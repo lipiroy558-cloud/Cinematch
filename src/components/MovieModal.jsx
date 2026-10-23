@@ -101,11 +101,13 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                 <button
                   type="button"
                   onClick={() => setIsPlayingTrailer(true)}
-                  className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2 px-5 py-2.5 rounded-full bg-rose-600/90 hover:bg-rose-600 text-white font-bold text-xs uppercase tracking-wider shadow-2xl backdrop-blur-md border border-white/25 hover:scale-105 active:scale-95 transition-all group cursor-pointer"
+                  className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2.5 px-6 py-3 rounded-full bg-white hover:bg-neutral-100 text-black font-extrabold text-xs sm:text-sm tracking-wide shadow-[0_12px_36px_rgba(0,0,0,0.85)] border border-white/60 hover:scale-105 active:scale-95 transition-all group cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
-                    play_circle
-                  </span>
+                  <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                    <span className="material-symbols-outlined text-[15px] ml-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      play_arrow
+                    </span>
+                  </div>
                   <span>Watch Trailer</span>
                 </button>
               ) : (
@@ -113,9 +115,9 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                   href={`https://www.youtube.com/results?search_query=${encodeURIComponent(current.title + ' ' + (current.year || '') + ' official trailer')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-xs backdrop-blur-md border border-white/20 hover:scale-105 active:scale-95 transition-all"
+                  className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/70 hover:bg-black text-white font-medium text-xs backdrop-blur-xl border border-white/20 hover:border-white/40 shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
-                  <span className="material-symbols-outlined text-[18px]">search</span>
+                  <span className="material-symbols-outlined text-[17px] text-secondary">search</span>
                   <span>Search Trailer on YouTube</span>
                 </a>
               )}
@@ -124,7 +126,7 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                 type="button"
                 aria-label="Close"
                 onClick={onClose}
-                className="absolute top-4 right-4 h-9 w-9 rounded-full border border-white/15 bg-black/50 text-white backdrop-blur-md transition hover:bg-rose-600 flex items-center justify-center z-10 active:scale-90"
+                className="absolute top-4 right-4 h-9 w-9 rounded-full border border-white/15 bg-black/60 text-white backdrop-blur-md transition hover:bg-white/25 flex items-center justify-center z-10 active:scale-90"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
@@ -200,8 +202,8 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
               {current.description || 'No overview is available for this movie yet.'}
             </p>
 
-            {/* Actions: Watchlist & Like */}
-            <div className="mt-5 flex gap-3">
+            {/* Actions: Watchlist, Like & Trailer */}
+            <div className="mt-5 flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => toggleWatchlist(current.id || movie.id)}
@@ -212,6 +214,20 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                 </span>
                 {watchlisted ? 'In watchlist' : 'Add to watchlist'}
               </button>
+              {trailerKey && (
+                <button
+                  type="button"
+                  onClick={() => setIsPlayingTrailer(true)}
+                  className="px-4 py-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs sm:text-sm transition flex items-center gap-1.5 active:scale-95 shadow-sm"
+                  title="Play Official Trailer"
+                >
+                  <span className="material-symbols-outlined text-[18px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    play_arrow
+                  </span>
+                  <span className="hidden sm:inline">Play</span>
+                  <span>Trailer</span>
+                </button>
+              )}
               <button
                 type="button"
                 aria-label={liked ? 'Unlike' : 'Like'}
