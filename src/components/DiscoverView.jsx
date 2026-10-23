@@ -43,7 +43,7 @@ export const INDUSTRIES = [
   { id: 'spanish', label: 'Spanish Cinema', flag: '🇪🇸' },
 ]
 
-export default function DiscoverView({ initialGenre = 'All', initialIndustry = 'all', initialQuery = '', onSelectMovie }) {
+export default function DiscoverView({ initialGenre = 'All', initialIndustry = 'all', initialQuery = '', onSelectMovie, onOpenSurprise }) {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [genre, setGenre] = useState(initialGenre)

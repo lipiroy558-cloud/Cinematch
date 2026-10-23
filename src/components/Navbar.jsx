@@ -5,7 +5,7 @@ import { useLibrary } from '../context/LibraryContext'
 
 // Fixed top header: logo + nav links, working search, notifications,
 // and prominent Sign In / User Profile button right in front.
-export default function Navbar({ activeView, onNavigate, onProfileClick, onSelectMovie }) {
+export default function Navbar({ activeView, onNavigate, onProfileClick, onSelectMovie, onOpenSurprise }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [remoteResults, setRemoteResults] = useState([])
@@ -81,6 +81,17 @@ export default function Navbar({ activeView, onNavigate, onProfileClick, onSelec
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              aria-label="Movie Roulette Surprise Me"
+              type="button"
+              onClick={onOpenSurprise}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-secondary/35 bg-secondary/10 hover:bg-secondary/20 text-secondary text-xs font-bold transition shadow-sm hover:scale-105 active:scale-95"
+              title="Movie Roulette - Can't decide what to watch?"
+            >
+              <span className="material-symbols-outlined text-[17px]">casino</span>
+              <span className="hidden sm:inline">Surprise Me</span>
+            </button>
+
             <button
               aria-label={searchOpen ? 'Close Search' : 'Search'}
               type="button"

@@ -7,6 +7,7 @@ import ForYouView from './components/ForYouView'
 import WatchlistView from './components/WatchlistView'
 import MovieModal from './components/MovieModal'
 import AuthModal from './components/AuthModal'
+import SurpriseMeModal from './components/SurpriseMeModal'
 import ProfileHeader from './components/ProfileHeader'
 import QuickStats from './components/QuickStats'
 import TasteDNA from './components/TasteDNA'
@@ -27,6 +28,7 @@ function AppContent() {
   const [discoverIndustry, setDiscoverIndustry] = useState('all')
   const [discoverQuery, setDiscoverQuery] = useState('')
   const [selectedMovie, setSelectedMovie] = useState(null)
+  const [surpriseOpen, setSurpriseOpen] = useState(false)
   const [profileMovies, setProfileMovies] = useState([])
   const {
     watchlistIds,
@@ -73,6 +75,7 @@ function AppContent() {
         onNavigate={setView}
         onProfileClick={() => setView('profile')}
         onSelectMovie={setSelectedMovie}
+        onOpenSurprise={() => setSurpriseOpen(true)}
       />
 
       <main className="flex flex-col relative w-full pt-16 pb-24 bg-surface min-h-screen">
@@ -82,6 +85,7 @@ function AppContent() {
             onSelectGenre={goToDiscoverWithGenre}
             onSelectIndustry={goToDiscoverWithIndustry}
             onSelectMovie={setSelectedMovie}
+            onOpenSurprise={() => setSurpriseOpen(true)}
           />
         )}
 
@@ -123,6 +127,8 @@ function AppContent() {
       <BottomNav activeTab={view} onChange={setView} watchlistCount={watchlistIds.length} />
 
       <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} onSearchPerson={handleSearchPerson} />
+
+      <SurpriseMeModal isOpen={surpriseOpen} onClose={() => setSurpriseOpen(false)} onSelectMovie={setSelectedMovie} />
 
       <AuthModal isOpen={authModalOpen} initialMode={authModalMode} onClose={closeAuth} />
 
