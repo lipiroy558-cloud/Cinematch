@@ -204,22 +204,24 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
               {current.description || 'No overview is available for this movie yet.'}
             </p>
 
-            {/* Actions: Watchlist, Watched, Trailer & Like */}
-            <div className="mt-5 flex flex-wrap items-center gap-2.5">
+            {/* Actions: Watchlist, Watched, Trailer & Like (Single Clean Row - No Wrapping) */}
+            <div className="mt-5 flex items-center gap-2 w-full">
               <button
                 type="button"
                 onClick={() => toggleWatchlist(current.id || movie.id)}
-                className="flex-1 min-w-[130px] rounded-xl bg-primary-container px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5 shadow-md active:scale-95"
+                className="flex-1 min-w-0 rounded-xl bg-primary-container px-3 py-2.5 text-xs sm:text-sm font-bold text-white transition hover:bg-[#f02a55] flex items-center justify-center gap-1.5 shadow-md active:scale-95 truncate"
+                title={watchlisted ? 'In watchlist' : 'Add to watchlist'}
               >
-                <span className="material-symbols-outlined text-[18px]">
+                <span className="material-symbols-outlined text-[18px] shrink-0">
                   {watchlisted ? 'bookmark' : 'bookmark_add'}
                 </span>
-                {watchlisted ? 'In watchlist' : 'Add to watchlist'}
+                <span className="truncate hidden sm:inline">{watchlisted ? 'In watchlist' : 'Add to watchlist'}</span>
+                <span className="truncate sm:hidden">{watchlisted ? 'Saved' : 'Watchlist'}</span>
               </button>
               <button
                 type="button"
                 onClick={() => toggleWatched(current.id || movie.id)}
-                className={`px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm ${
+                className={`px-3 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm shrink-0 ${
                   watched
                     ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
                     : 'border-white/15 bg-white/10 hover:bg-white/20 text-white'
@@ -227,32 +229,33 @@ export default function MovieModal({ movie, onClose, onSearchPerson }) {
                 title={watched ? 'Marked as watched' : 'Mark as watched'}
               >
                 <span
-                  className={`material-symbols-outlined text-[18px] ${watched ? 'text-emerald-400' : 'text-white/80'}`}
+                  className={`material-symbols-outlined text-[18px] shrink-0 ${watched ? 'text-emerald-400' : 'text-white/80'}`}
                   style={watched ? { fontVariationSettings: "'FILL' 1" } : undefined}
                 >
                   {watched ? 'check_circle' : 'done'}
                 </span>
-                <span>{watched ? 'Watched' : 'Mark Watched'}</span>
+                <span className="hidden sm:inline">{watched ? 'Watched' : 'Mark Watched'}</span>
+                <span className="sm:hidden">{watched ? 'Watched' : 'Seen'}</span>
               </button>
               {trailerKey && (
                 <button
                   type="button"
                   onClick={() => setIsPlayingTrailer(true)}
-                  className="px-4 py-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs sm:text-sm transition flex items-center gap-1.5 active:scale-95 shadow-sm"
+                  className="px-3 py-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 active:scale-95 shadow-sm shrink-0"
                   title="Play Official Trailer"
                 >
-                  <span className="material-symbols-outlined text-[18px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  <span className="material-symbols-outlined text-[18px] text-secondary shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>
                     play_arrow
                   </span>
-                  <span className="hidden sm:inline">Play</span>
-                  <span>Trailer</span>
+                  <span className="hidden sm:inline">Trailer</span>
                 </button>
               )}
               <button
                 type="button"
                 aria-label={liked ? 'Unlike' : 'Like'}
+                title={liked ? 'Unlike' : 'Like'}
                 onClick={() => toggleLike(current.id || movie.id)}
-                className={`h-11 w-11 rounded-xl border transition flex items-center justify-center shrink-0 active:scale-95 ${
+                className={`h-10 w-10 sm:h-11 sm:w-11 rounded-xl border transition flex items-center justify-center shrink-0 active:scale-95 ${
                   liked
                     ? 'border-primary-container bg-primary-container text-white shadow-md'
                     : 'border-white/10 bg-white/[0.05] text-on-surface-variant hover:text-white'
